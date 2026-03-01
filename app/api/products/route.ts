@@ -32,10 +32,7 @@ export async function GET(req: NextRequest) {
     if (subCategory) query.subCategory = subCategory;
     if (featured === "true") query.isFeatured = true;
     if (available !== "false") query.isAvailable = true; // default: only available products
-    if (pincode)     query.$or = [
-      { serviceablePincodes: pincode },
-      { serviceablePincodes: { $size: 0 } }, // empty = serviceable everywhere
-    ];
+    // Pincode is used for delivery estimation only — not for filtering products
     if (search)      query.$text = { $search: search };
     if (organic === "true") query.isOrganic = true;
     if (maxPrice)    query["variants.sellingPrice"] = { $lte: Number(maxPrice) };
