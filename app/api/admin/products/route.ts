@@ -22,17 +22,37 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const {
-      name, description, category,
-      // variant fields (flat form → wrapped into variants[])
-      mrp, sellingPrice, size, unit,
-      stockQty, images, tags, isOrganic, isFeatured, serviceablePincodes,
+      name, description, category, subCategory,
+      variants, subDescription, additionalInfo, allergyInfo, ingredients,
+      stockQty, images, tags, isOrganic, isFeatured, isAvailable,
+      serviceablePincodes,
     } = body;
 
-    if (!name || !description || !category || !mrp || !unit || !size) {
+    if (!name || !description || !category) {
       return NextResponse.json(
-        { success: false, error: "Name, description, category, mrp, size, and unit are required" },
+        { success: false, error: "Name, description, and category are required" },
         { status: 400 }
       );
+    }
+
+    if (!variants || variants.length === 0) {
+      return NextResponse.json(
+        { success: false, error: "At least one variant is required" },
+        { status: 400 }
+      );
+    }
+
+    for (const v of variants) {
+      if (!v.size || !v.unit || !v.mrp) {
+        return NextResponse.json(
+          { success: false, error: "Each variant must have size, unit, and mrp" },
+          { status: 400 }
+        );
+      }
+      if (!v.sku) {
+        v.sku = `${slugify(name).toUpperCase()}-${String(v.size).toUpperCase()}${String(v.unit).toUpperCase()}`;
+      }
+      if (!v.sellingPrice) v.sellingPrice = v.mrp;
     }
 
     await connectDB();
@@ -46,22 +66,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const sku = `${slugify(name).toUpperCase()}-${String(size).toUpperCase()}${String(unit).toUpperCase()}`;
-
+    const qty = stockQty ?? 0;
     const product = await Product.create({
       name,
       slug,
       description,
+      subDescription:  subDescription  || undefined,
+      additionalInfo:  additionalInfo  || undefined,
+      allergyInfo:     allergyInfo     || undefined,
+      ingredients:     ingredients     || undefined,
       category,
-      variants: [{
-        size: String(size),
-        unit: String(unit),
-        mrp: Number(mrp),
-        sellingPrice: sellingPrice ? Number(sellingPrice) : Number(mrp),
-        sku,
-      }],
-      stockQty: stockQty ?? 0,
-      isAvailable: (stockQty ?? 0) > 0,
+      subCategory:     subCategory     || undefined,
+      variants,
+      stockQty: qty,
+      isAvailable: isAvailable !== undefined ? isAvailable : qty > 0,
       images: images ?? [],
       tags: tags ?? [],
       isOrganic: isOrganic ?? false,
