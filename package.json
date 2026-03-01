@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "ts-node --project tsconfig.json -e \"require('./lib/seed').seedDatabase()\""
+    "seed": "ts-node --project tsconfig.seed.json --transpile-only lib/seed.ts"
   },
   "dependencies": {
     "@types/bcryptjs": "^2.4.6",

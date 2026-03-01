@@ -24,6 +24,7 @@ services:
   mongo-seed:
     image: node:20-alpine
     container_name: freshcart_seed
+    restart: "no"
     depends_on:
       mongodb:
         condition: service_healthy
@@ -34,12 +35,7 @@ services:
       - /app/node_modules
     working_dir: /app
     command: >
-      sh -c "npm install --silent && npx ts-node --skipProject -e \"
-        process.env.MONGO_URI='mongodb://freshcart_admin:freshcart_secret@mongodb:27017/freshcart?authSource=admin';
-        require('./lib/seed').seedDatabase().then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); })
-      \""
-    profiles:
-      - seed
+      sh -c "npm install --silent && npx ts-node --project tsconfig.seed.json --transpile-only lib/seed.ts"
 
 volumes:
   freshcart_mongo_data:
