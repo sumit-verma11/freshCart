@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "ts-node --project tsconfig.seed.json --transpile-only lib/seed.ts"
+    "seed": "ts-node --project tsconfig.seed.json --transpile-only lib/seed.ts",
+    "docker:up": "docker-compose up --build",
+    "docker:down": "docker-compose down"
   },
   "dependencies": {
     "@types/bcryptjs": "^2.4.6",

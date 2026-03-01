@@ -8,12 +8,9 @@ services:
     ports:
       - "27017:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: freshcart_admin
-      MONGO_INITDB_ROOT_PASSWORD: freshcart_secret
       MONGO_INITDB_DATABASE: freshcart
     volumes:
-      - freshcart_mongo_data:/data/db
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - mongo_data:/data/db
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -21,22 +18,25 @@ services:
       retries: 5
       start_period: 20s
 
-  mongo-seed:
-    image: node:20-alpine
-    container_name: freshcart_seed
-    restart: "no"
+  app:
+    build: .
+    container_name: freshcart_app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
     depends_on:
       mongodb:
         condition: service_healthy
     environment:
-      MONGO_URI: mongodb://freshcart_admin:freshcart_secret@mongodb:27017/freshcart?authSource=admin
-    volumes:
-      - .:/app
-      - /app/node_modules
-    working_dir: /app
-    command: >
-      sh -c "npm install --silent && npx ts-node --project tsconfig.seed.json --transpile-only lib/seed.ts"
+      NODE_ENV: production
+      MONGO_URI: mongodb://mongodb:27017/freshcart
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-change-me-run-openssl-rand-base64-32}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXT_PUBLIC_APP_NAME: FreshCart
+      NEXT_PUBLIC_APP_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+    # Build (needs MongoDB available for route analysis), seed (idempotent), start
+    command: sh -c "npm run build && npm run seed && npm start"
 
 volumes:
-  freshcart_mongo_data:
+  mongo_data:
     name: freshcart_mongo_data
