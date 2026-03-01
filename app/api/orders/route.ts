@@ -4,7 +4,10 @@ import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/mongoose";
 import Order from "@/models/Order";
 import Product from "@/models/Product";
+import { IProductDocument } from "@/models";
 import { generateOrderNumber, getDeliveryCharge } from "@/lib/utils";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
@@ -21,7 +24,7 @@ export async function GET(req: NextRequest) {
 
     const [orders, total] = await Promise.all([
       Order.find({ userId: session.user.id })
-        .sort({ createdAt: -1 })
+        .sort({ placedAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit)
         .lean(),
@@ -46,69 +49,85 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    const { items, shippingAddress, paymentMethod, notes } = await req.json();
+    const { items, deliveryAddress, estimatedDelivery } = await req.json();
 
-    if (!items?.length || !shippingAddress || !paymentMethod) {
+    if (!items?.length || !deliveryAddress) {
       return NextResponse.json(
-        { success: false, error: "Items, shipping address, and payment method are required" },
+        { success: false, error: "Items and delivery address are required" },
+        { status: 400 }
+      );
+    }
+
+    const { street, city, state, pincode } = deliveryAddress;
+    if (!street || !city || !state || !pincode) {
+      return NextResponse.json(
+        { success: false, error: "Complete delivery address is required" },
         { status: 400 }
       );
     }
 
     await connectDB();
 
-    // Validate and calculate order totals
-    let subtotal = 0;
+    let totalMRP = 0;
+    let grandTotalItems = 0;
     const orderItems = [];
 
-    for (const item of items) {
-      const product = await Product.findById(item.productId);
+    for (const item of items as { productId: string; variantSku: string; qty: number }[]) {
+      const product = await Product.findById(item.productId) as IProductDocument | null;
       if (!product) {
         return NextResponse.json(
           { success: false, error: `Product ${item.productId} not found` },
           { status: 404 }
         );
       }
-      if (product.stock < item.quantity) {
+      if (!product.isAvailable || product.stockQty < item.qty) {
         return NextResponse.json(
           { success: false, error: `Insufficient stock for ${product.name}` },
           { status: 400 }
         );
       }
 
-      const effectivePrice = product.salePrice ?? product.price;
-      subtotal += effectivePrice * item.quantity;
+      const variant = product.variants.find((v) => v.sku === item.variantSku.toUpperCase());
+      if (!variant) {
+        return NextResponse.json(
+          { success: false, error: `Variant ${item.variantSku} not found for ${product.name}` },
+          { status: 400 }
+        );
+      }
+
+      totalMRP += variant.mrp * item.qty;
+      grandTotalItems += variant.sellingPrice * item.qty;
 
       orderItems.push({
         productId: product._id,
+        variantSku: variant.sku,
         name: product.name,
-        image: product.images[0] ?? "",
-        unit: product.unit,
-        quantity: item.quantity,
-        price: product.price,
-        salePrice: product.salePrice,
+        qty: item.qty,
+        price: variant.sellingPrice,
       });
 
       // Deduct stock
-      await Product.findByIdAndUpdate(product._id, { $inc: { stock: -item.quantity } });
+      await Product.findByIdAndUpdate(product._id, {
+        $inc: { stockQty: -item.qty },
+      });
     }
 
-    const deliveryCharge = getDeliveryCharge(subtotal);
-    const total = subtotal + deliveryCharge;
+    const deliveryCharge = getDeliveryCharge(grandTotalItems);
+    const grandTotal = grandTotalItems + deliveryCharge;
+    const totalDiscount = Math.max(0, totalMRP - grandTotalItems);
 
     const order = await Order.create({
       userId: session.user.id,
       orderNumber: generateOrderNumber(),
       items: orderItems,
-      shippingAddress,
-      subtotal,
+      deliveryAddress: { street, city, state, pincode },
+      billingType: "COD",
+      status: "confirmed",
+      estimatedDelivery: estimatedDelivery ?? { minHours: 2, maxHours: 4 },
+      totalMRP,
+      totalDiscount,
       deliveryCharge,
-      discount: 0,
-      total,
-      paymentMethod,
-      paymentStatus: paymentMethod === "cod" ? "pending" : "paid",
-      orderStatus: "confirmed",
-      notes,
+      grandTotal,
     });
 
     return NextResponse.json({ success: true, data: order }, { status: 201 });

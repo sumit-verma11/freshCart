@@ -2,17 +2,16 @@
 
 import Image from "next/image";
 import { Minus, Plus, Trash2 } from "lucide-react";
-import { ICartItem } from "@/types";
+import { IClientCartItem } from "@/types";
 import { formatPrice } from "@/lib/utils";
 import { useCartStore } from "@/store/cart";
 
 interface CartItemProps {
-  item: ICartItem;
+  item: IClientCartItem;
 }
 
 export default function CartItem({ item }: CartItemProps) {
   const { updateQuantity, removeItem } = useCartStore();
-  const effectivePrice = item.salePrice ?? item.price;
 
   return (
     <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-border">
@@ -34,9 +33,9 @@ export default function CartItem({ item }: CartItemProps) {
         </h4>
         <p className="text-xs text-muted mt-0.5">{item.unit}</p>
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-primary font-bold text-sm">{formatPrice(effectivePrice)}</span>
-          {item.salePrice && item.salePrice < item.price && (
-            <span className="text-muted text-xs line-through">{formatPrice(item.price)}</span>
+          <span className="text-primary font-bold text-sm">{formatPrice(item.sellingPrice)}</span>
+          {item.sellingPrice < item.mrp && (
+            <span className="text-muted text-xs line-through">{formatPrice(item.mrp)}</span>
           )}
         </div>
       </div>
@@ -71,7 +70,7 @@ export default function CartItem({ item }: CartItemProps) {
         {/* Item total + remove */}
         <div className="flex items-center gap-3">
           <span className="text-sm font-bold text-dark">
-            {formatPrice(effectivePrice * item.quantity)}
+            {formatPrice(item.sellingPrice * item.quantity)}
           </span>
           <button
             onClick={() => removeItem(item.productId)}

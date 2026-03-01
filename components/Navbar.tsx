@@ -1,206 +1,564 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
-import { ShoppingCart, User, Search, Menu, X, Leaf, ChevronDown } from "lucide-react";
+import {
+  ShoppingCart, User, Search, Menu, X, Leaf, ChevronDown,
+  MapPin, Loader2, CheckCircle2, AlertCircle, LayoutDashboard,
+  Package, LogOut,
+} from "lucide-react";
 import { useCartStore } from "@/store/cart";
-import { cn } from "@/lib/utils";
+import { usePincodeStore } from "@/store/pincode";
+import { IProduct } from "@/types";
+import { formatPrice } from "@/lib/utils";
 
-const CATEGORIES = [
-  "Fruits & Vegetables",
-  "Dairy & Eggs",
-  "Bakery",
-  "Beverages",
-  "Snacks",
-  "Meat & Seafood",
+// ─── Category quick links ─────────────────────────────────────────────────────
+
+const NAV_CATEGORIES = [
+  { label: "Fruits & Veggies", emoji: "🥦", slug: "Fruits%20%26%20Vegetables" },
+  { label: "Dairy & Eggs",     emoji: "🥛", slug: "Dairy%20%26%20Eggs" },
+  { label: "Bakery",           emoji: "🍞", slug: "Bakery" },
+  { label: "Beverages",        emoji: "🧃", slug: "Beverages" },
+  { label: "Snacks",           emoji: "🍿", slug: "Snacks" },
+  { label: "Meat & Seafood",   emoji: "🐟", slug: "Meat%20%26%20Seafood" },
 ];
+
+// ─── Text highlighter ─────────────────────────────────────────────────────────
+
+function Highlight({ text, query }: { text: string; query: string }) {
+  if (!query.trim()) return <>{text}</>;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const parts = text.split(new RegExp(`(${escaped})`, "gi"));
+  return (
+    <>
+      {parts.map((p, i) =>
+        p.toLowerCase() === query.toLowerCase() ? (
+          <mark key={i} className="bg-secondary/25 text-dark rounded-sm not-italic px-0.5">
+            {p}
+          </mark>
+        ) : (
+          p
+        )
+      )}
+    </>
+  );
+}
+
+// ─── Navbar ───────────────────────────────────────────────────────────────────
 
 export default function Navbar() {
   const { data: session } = useSession();
+  const cartCount  = useCartStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
+  const { info: pincodeInfo, setPincode, clearPincode } = usePincodeStore();
+
+  // ── Mobile menu ──────────────────────────────────────────────────────────
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [catOpen, setCatOpen] = useState(false);
-  const cartCount = useCartStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  // ── Search ───────────────────────────────────────────────────────────────
+  const [searchInput, setSearchInput] = useState("");
+  const [searchResults, setSearchResults] = useState<IProduct[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const searchTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  // ── Pincode modal ─────────────────────────────────────────────────────────
+  const [pincodeOpen, setPincodeOpen] = useState(false);
+  const [pincodeInput, setPincodeInput] = useState("");
+  const [pincodeLoading, setPincodeLoading] = useState(false);
+  const [pincodeError, setPincodeError] = useState("");
+  const [pincodeSuccess, setPincodeSuccess] = useState(false);
+  const pincodeInputRef = useRef<HTMLInputElement>(null);
+
+  // ── Debounced search ──────────────────────────────────────────────────────
+  const doSearch = useCallback(async (q: string) => {
+    if (!q.trim()) { setSearchResults([]); setSearchOpen(false); return; }
+    setSearchLoading(true);
+    try {
+      const res  = await fetch(`/api/products?search=${encodeURIComponent(q)}&limit=6`);
+      const data = await res.json();
+      if (data.success && data.data.length > 0) {
+        setSearchResults(data.data);
+        setSearchOpen(true);
+      } else {
+        setSearchResults([]);
+        setSearchOpen(!!q.trim()); // keep open to show "no results"
+      }
+    } catch {
+      setSearchResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    clearTimeout(searchTimer.current);
+    if (!searchInput.trim()) { setSearchResults([]); setSearchOpen(false); return; }
+    searchTimer.current = setTimeout(() => doSearch(searchInput), 300);
+    return () => clearTimeout(searchTimer.current);
+  }, [searchInput, doSearch]);
+
+  // Close search on outside click
+  useEffect(() => {
+    function onDown(e: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, []);
+
+  // Focus pincode input when modal opens
+  useEffect(() => {
+    if (pincodeOpen) {
+      setPincodeInput(pincodeInfo?.pincode ?? "");
+      setPincodeError("");
+      setPincodeSuccess(false);
+      setTimeout(() => pincodeInputRef.current?.focus(), 100);
+    }
+  }, [pincodeOpen, pincodeInfo]);
+
+  // ── Pincode check ─────────────────────────────────────────────────────────
+  async function checkPincode() {
+    if (!/^\d{6}$/.test(pincodeInput)) {
+      setPincodeError("Please enter a valid 6-digit pincode");
+      return;
+    }
+    setPincodeLoading(true);
+    setPincodeError("");
+    try {
+      const res  = await fetch(`/api/pincode/check?pincode=${pincodeInput}`);
+      const data = await res.json();
+      if (data.success) {
+        setPincode(data.data);
+        setPincodeSuccess(true);
+        setTimeout(() => { setPincodeOpen(false); setPincodeSuccess(false); }, 1200);
+      } else {
+        setPincodeError(data.error || "Failed to check pincode");
+      }
+    } catch {
+      setPincodeError("Network error. Please try again.");
+    } finally {
+      setPincodeLoading(false);
+    }
+  }
+
+  function handleSearchSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (searchInput.trim()) {
+      setSearchOpen(false);
+      window.location.href = `/?search=${encodeURIComponent(searchInput.trim())}`;
+    }
+  }
 
   return (
-    <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-border">
-      {/* Top strip */}
-      <div className="bg-primary text-white text-xs text-center py-1.5 font-medium">
-        🚚 Free delivery on orders above ₹499 &nbsp;|&nbsp; Same-day delivery available
-      </div>
+    <>
+      <header className="sticky top-0 z-50 bg-white border-b border-border shadow-sm">
+        {/* Top strip */}
+        <div className="bg-primary text-white text-xs text-center py-1.5 font-medium tracking-wide">
+          🚚 Free delivery on orders above ₹499 &nbsp;|&nbsp; Same-day delivery available
+        </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-4">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0">
-            <span className="bg-primary rounded-xl p-1.5">
-              <Leaf className="w-5 h-5 text-white" />
-            </span>
-            <span className="text-xl font-bold text-dark">
-              Fresh<span className="text-primary">Cart</span>
-            </span>
-          </Link>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3 h-16">
 
-          {/* Search */}
-          <div className="hidden md:flex flex-1 max-w-xl">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
-              <input
-                type="text"
-                placeholder="Search for groceries, brands..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && searchQuery.trim()) {
-                    window.location.href = `/search?q=${encodeURIComponent(searchQuery.trim())}`;
-                  }
-                }}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-gray-50
-                           text-sm focus:outline-none focus:ring-2 focus:ring-primary/30
-                           focus:border-primary focus:bg-white transition-all"
-              />
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-2 shrink-0">
+              <span className="bg-primary rounded-xl p-1.5">
+                <Leaf className="w-5 h-5 text-white" />
+              </span>
+              <span className="text-xl font-bold text-dark hidden sm:block">
+                Fresh<span className="text-primary">Cart</span>
+              </span>
+            </Link>
+
+            {/* Pincode detector */}
+            <button
+              onClick={() => setPincodeOpen(true)}
+              className="hidden md:flex items-center gap-1.5 shrink-0 text-sm font-medium
+                         text-muted hover:text-primary transition-colors px-3 py-1.5
+                         rounded-lg hover:bg-accent border border-border"
+              title="Set delivery location"
+            >
+              <MapPin className="w-4 h-4 text-primary shrink-0" />
+              <span className="max-w-[110px] truncate">
+                {pincodeInfo?.area
+                  ? `${pincodeInfo.area}, ${pincodeInfo.city}`
+                  : "Enter Pincode"}
+              </span>
+            </button>
+
+            {/* Search bar */}
+            <div ref={searchRef} className="hidden md:block flex-1 relative">
+              <form onSubmit={handleSearchSubmit}>
+                <div className="relative">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                  <input
+                    type="text"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onFocus={() => searchInput.trim() && setSearchOpen(true)}
+                    placeholder="Search for vegetables, fruits, dairy..."
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-gray-50
+                               text-sm focus:outline-none focus:ring-2 focus:ring-primary/30
+                               focus:border-primary focus:bg-white transition-all"
+                  />
+                  {searchLoading && (
+                    <Loader2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4
+                                        text-muted animate-spin" />
+                  )}
+                </div>
+              </form>
+
+              {/* Search dropdown */}
+              {searchOpen && (
+                <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-2xl
+                                shadow-modal border border-border overflow-hidden z-50 animate-slide-down">
+                  {searchResults.length === 0 ? (
+                    <div className="px-5 py-8 text-center">
+                      <p className="text-2xl mb-2">🔍</p>
+                      <p className="font-semibold text-dark text-sm">No results found</p>
+                      <p className="text-xs text-muted mt-1">
+                        Try a different keyword or browse categories below
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="divide-y divide-border">
+                        {searchResults.map((product) => {
+                          const v = product.variants?.[0];
+                          return (
+                            <Link
+                              key={product._id.toString()}
+                              href={`/product/${product.slug}`}
+                              onClick={() => { setSearchOpen(false); setSearchInput(""); }}
+                              className="flex items-center gap-3 px-4 py-3 hover:bg-accent transition-colors"
+                            >
+                              <div className="w-11 h-11 rounded-xl bg-accent overflow-hidden shrink-0">
+                                {product.images?.[0] ? (
+                                  <Image
+                                    src={product.images[0]}
+                                    alt={product.name}
+                                    width={44}
+                                    height={44}
+                                    className="object-cover w-full h-full"
+                                  />
+                                ) : (
+                                  <span className="w-full h-full flex items-center justify-center text-lg">🛒</span>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-dark truncate">
+                                  <Highlight text={product.name} query={searchInput} />
+                                </p>
+                                {v && (
+                                  <p className="text-xs text-muted mt-0.5">
+                                    {v.size}{v.unit}
+                                  </p>
+                                )}
+                              </div>
+                              {v && (
+                                <div className="text-right shrink-0">
+                                  <p className="text-sm font-bold text-primary">
+                                    {formatPrice(v.sellingPrice)}
+                                  </p>
+                                  {v.sellingPrice < v.mrp && (
+                                    <p className="text-xs text-muted line-through">
+                                      {formatPrice(v.mrp)}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                      <Link
+                        href={`/?search=${encodeURIComponent(searchInput)}`}
+                        onClick={() => { setSearchOpen(false); setSearchInput(""); }}
+                        className="flex items-center justify-center gap-2 px-4 py-3
+                                   text-sm font-semibold text-primary hover:bg-accent
+                                   border-t border-border transition-colors"
+                      >
+                        <Search className="w-4 h-4" />
+                        View all results for &ldquo;{searchInput}&rdquo;
+                      </Link>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Right actions */}
+            <div className="flex items-center gap-1 ml-auto md:ml-0">
+
+              {/* Cart */}
+              <Link href="/cart" className="relative flex items-center gap-2 btn-ghost">
+                <ShoppingCart className="w-5 h-5" />
+                <span className="hidden sm:inline text-sm font-medium">Cart</span>
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-secondary text-white text-xs
+                                   font-bold w-5 h-5 rounded-full flex items-center justify-center
+                                   leading-none">
+                    {cartCount > 9 ? "9+" : cartCount}
+                  </span>
+                )}
+              </Link>
+
+              {/* Auth */}
+              {session ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setUserMenuOpen((o) => !o)}
+                    className="flex items-center gap-1.5 btn-ghost text-sm"
+                  >
+                    <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                      <User className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="hidden sm:inline font-medium max-w-[70px] truncate">
+                      {session.user.name?.split(" ")[0]}
+                    </span>
+                    {session.user.role === "admin" && (
+                      <span className="hidden sm:inline text-xs bg-secondary text-white
+                                       px-1.5 py-0.5 rounded-full font-bold">
+                        Admin
+                      </span>
+                    )}
+                    <ChevronDown className={`w-3.5 h-3.5 text-muted transition-transform ${userMenuOpen ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {userMenuOpen && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
+                      <div className="absolute right-0 top-full mt-2 w-52 card shadow-modal py-1.5 z-50 animate-slide-down">
+                        <div className="px-4 py-2 border-b border-border mb-1">
+                          <p className="text-sm font-semibold text-dark truncate">{session.user.name}</p>
+                          <p className="text-xs text-muted truncate">{session.user.email}</p>
+                        </div>
+                        {session.user.role === "admin" && (
+                          <Link
+                            href="/dashboard"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm
+                                       hover:bg-accent text-dark transition-colors"
+                          >
+                            <LayoutDashboard className="w-4 h-4 text-primary" />
+                            Admin Dashboard
+                          </Link>
+                        )}
+                        <Link
+                          href="/orders"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm
+                                     hover:bg-accent text-dark transition-colors"
+                        >
+                          <Package className="w-4 h-4 text-muted" />
+                          My Orders
+                        </Link>
+                        <hr className="my-1 border-border" />
+                        <button
+                          onClick={() => { setUserMenuOpen(false); signOut({ callbackUrl: "/" }); }}
+                          className="flex items-center gap-3 w-full px-4 py-2.5 text-sm
+                                     text-danger hover:bg-red-50 transition-colors"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          Sign Out
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <Link href="/login" className="btn-primary text-sm px-4 py-2">
+                  Login
+                </Link>
+              )}
+
+              {/* Mobile toggle */}
+              <button
+                className="md:hidden btn-ghost p-2"
+                onClick={() => setMobileOpen((o) => !o)}
+                aria-label="Toggle menu"
+              >
+                {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
             </div>
           </div>
 
-          {/* Right actions */}
-          <div className="flex items-center gap-1">
-            {/* Cart */}
-            <Link
-              href="/cart"
-              className="relative flex items-center gap-2 btn-ghost text-sm"
-            >
-              <ShoppingCart className="w-5 h-5" />
-              <span className="hidden sm:inline font-medium">Cart</span>
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-secondary text-white text-xs
-                                 font-bold w-5 h-5 rounded-full flex items-center justify-center">
-                  {cartCount > 9 ? "9+" : cartCount}
-                </span>
-              )}
-            </Link>
-
-            {/* Auth */}
-            {session ? (
-              <div className="relative group">
-                <button className="flex items-center gap-1.5 btn-ghost text-sm">
-                  <User className="w-5 h-5" />
-                  <span className="hidden sm:inline font-medium max-w-[80px] truncate">
-                    {session.user.name?.split(" ")[0]}
-                  </span>
-                  <ChevronDown className="w-3.5 h-3.5 text-muted" />
-                </button>
-                <div className="absolute right-0 top-full mt-1 w-48 card shadow-modal py-1
-                                opacity-0 invisible group-hover:opacity-100 group-hover:visible
-                                transition-all duration-150">
-                  {session.user.role === "admin" && (
-                    <Link href="/dashboard" className="block px-4 py-2.5 text-sm hover:bg-accent">
-                      Admin Dashboard
-                    </Link>
-                  )}
-                  <Link href="/orders" className="block px-4 py-2.5 text-sm hover:bg-accent">
-                    My Orders
-                  </Link>
-                  <Link href="/profile" className="block px-4 py-2.5 text-sm hover:bg-accent">
-                    Profile
-                  </Link>
-                  <hr className="my-1 border-border" />
-                  <button
-                    onClick={() => signOut({ callbackUrl: "/" })}
-                    className="block w-full text-left px-4 py-2.5 text-sm text-danger hover:bg-red-50"
-                  >
-                    Sign Out
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <Link href="/login" className="btn-primary text-sm px-4 py-2.5">
-                Login
-              </Link>
-            )}
-
-            {/* Mobile menu toggle */}
-            <button
-              className="md:hidden btn-ghost p-2"
-              onClick={() => setMobileOpen((o) => !o)}
-            >
-              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
-        </div>
-
-        {/* Category nav */}
-        <nav className="hidden md:flex items-center gap-1 pb-2 overflow-x-auto scrollbar-hide">
-          <div className="relative">
-            <button
-              onMouseEnter={() => setCatOpen(true)}
-              onMouseLeave={() => setCatOpen(false)}
-              className="flex items-center gap-1 text-sm font-medium text-dark
-                         hover:text-primary transition-colors px-3 py-1.5 rounded-lg
-                         hover:bg-accent"
-            >
-              All Categories <ChevronDown className="w-3.5 h-3.5" />
-            </button>
-            {catOpen && (
-              <div
-                className="absolute left-0 top-full w-56 card shadow-modal py-1 z-50"
-                onMouseEnter={() => setCatOpen(true)}
-                onMouseLeave={() => setCatOpen(false)}
-              >
-                {CATEGORIES.map((cat) => (
-                  <Link
-                    key={cat}
-                    href={`/category/${encodeURIComponent(cat)}`}
-                    className="block px-4 py-2.5 text-sm hover:bg-accent hover:text-primary"
-                  >
-                    {cat}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-          {CATEGORIES.map((cat) => (
-            <Link
-              key={cat}
-              href={`/category/${encodeURIComponent(cat)}`}
-              className={cn(
-                "text-sm font-medium whitespace-nowrap px-3 py-1.5 rounded-lg",
-                "text-muted hover:text-primary hover:bg-accent transition-colors"
-              )}
-            >
-              {cat}
-            </Link>
-          ))}
-        </nav>
-      </div>
-
-      {/* Mobile menu */}
-      {mobileOpen && (
-        <div className="md:hidden border-t border-border bg-white px-4 py-4 space-y-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
-            <input
-              type="text"
-              placeholder="Search groceries..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border text-sm
-                         focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-            />
-          </div>
-          <div className="space-y-1">
-            {CATEGORIES.map((cat) => (
+          {/* Desktop category nav */}
+          <nav className="hidden md:flex items-center gap-1 pb-2 overflow-x-auto scrollbar-hide">
+            {NAV_CATEGORIES.map(({ label, emoji, slug }) => (
               <Link
-                key={cat}
-                href={`/category/${encodeURIComponent(cat)}`}
-                onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2 text-sm font-medium text-dark hover:text-primary
-                           hover:bg-accent rounded-lg transition-colors"
+                key={slug}
+                href={`/?category=${slug}`}
+                className="flex items-center gap-1.5 text-sm font-medium whitespace-nowrap
+                           px-3 py-1.5 rounded-lg text-muted hover:text-primary
+                           hover:bg-accent transition-colors"
               >
-                {cat}
+                <span>{emoji}</span> {label}
               </Link>
             ))}
+          </nav>
+        </div>
+
+        {/* Mobile menu */}
+        {mobileOpen && (
+          <div className="md:hidden border-t border-border bg-white px-4 py-4 space-y-3
+                          animate-slide-down">
+            {/* Mobile search */}
+            <form onSubmit={handleSearchSubmit}>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="Search groceries..."
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border text-sm
+                             focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                />
+              </div>
+            </form>
+
+            {/* Mobile pincode */}
+            <button
+              onClick={() => { setPincodeOpen(true); setMobileOpen(false); }}
+              className="flex items-center gap-2 w-full px-3 py-2 rounded-lg
+                         bg-accent text-sm font-medium text-primary"
+            >
+              <MapPin className="w-4 h-4" />
+              {pincodeInfo?.area
+                ? `Delivering to: ${pincodeInfo.area}, ${pincodeInfo.city}`
+                : "Set delivery location"}
+            </button>
+
+            {/* Mobile categories */}
+            <div className="grid grid-cols-2 gap-1">
+              {NAV_CATEGORIES.map(({ label, emoji, slug }) => (
+                <Link
+                  key={slug}
+                  href={`/?category=${slug}`}
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium
+                             text-dark hover:text-primary hover:bg-accent rounded-lg transition-colors"
+                >
+                  <span>{emoji}</span> {label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+      </header>
+
+      {/* ── Pincode Modal ─────────────────────────────────────────────────────── */}
+      {pincodeOpen && (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-dark/40 backdrop-blur-sm animate-fade-in"
+            onClick={() => setPincodeOpen(false)}
+          />
+
+          {/* Sheet */}
+          <div className="relative bg-white w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl
+                          p-6 shadow-modal animate-slide-up sm:animate-fade-in-up">
+            <button
+              onClick={() => setPincodeOpen(false)}
+              className="absolute right-5 top-5 text-muted hover:text-dark transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-11 h-11 bg-accent rounded-2xl flex items-center justify-center">
+                <MapPin className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-dark">Delivery Location</h2>
+                <p className="text-sm text-muted">Enter your pincode to check delivery</p>
+              </div>
+            </div>
+
+            {pincodeSuccess ? (
+              <div className="flex flex-col items-center py-6 gap-3">
+                <CheckCircle2 className="w-14 h-14 text-success" />
+                <p className="font-bold text-dark">
+                  {pincodeInfo?.isServiceable
+                    ? `We deliver to ${pincodeInfo.area}!`
+                    : "Pincode saved"}
+                </p>
+                {pincodeInfo?.isServiceable && pincodeInfo.estimatedDelivery && (
+                  <p className="text-sm text-muted">
+                    Delivery in {pincodeInfo.estimatedDelivery.min}–{pincodeInfo.estimatedDelivery.max} hours
+                  </p>
+                )}
+              </div>
+            ) : (
+              <>
+                <div className="flex gap-3">
+                  <input
+                    ref={pincodeInputRef}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={pincodeInput}
+                    onChange={(e) => {
+                      setPincodeInput(e.target.value.replace(/\D/g, "").slice(0, 6));
+                      setPincodeError("");
+                    }}
+                    onKeyDown={(e) => e.key === "Enter" && checkPincode()}
+                    placeholder="e.g. 400001"
+                    className="input flex-1 text-lg font-mono tracking-widest"
+                  />
+                  <button
+                    onClick={checkPincode}
+                    disabled={pincodeLoading || pincodeInput.length !== 6}
+                    className="btn-primary px-5 shrink-0"
+                  >
+                    {pincodeLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      "Check"
+                    )}
+                  </button>
+                </div>
+
+                {pincodeError && (
+                  <div className="flex items-center gap-2 mt-3 text-danger text-sm">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    {pincodeError}
+                  </div>
+                )}
+
+                {pincodeInfo && !pincodeError && (
+                  <div className="mt-3 p-3 bg-accent rounded-xl flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-dark">
+                        Current: {pincodeInfo.area}, {pincodeInfo.city}
+                      </p>
+                      <p className="text-xs text-muted">{pincodeInfo.pincode}</p>
+                    </div>
+                    <button
+                      onClick={clearPincode}
+                      className="text-xs text-danger hover:underline font-medium"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+
+                <p className="text-xs text-muted mt-4 text-center">
+                  We&apos;ll show you products available in your area
+                </p>
+              </>
+            )}
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 }

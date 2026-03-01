@@ -1,11 +1,11 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { ICartItem } from "@/types";
+import { IClientCartItem } from "@/types";
 import { getDeliveryCharge } from "@/lib/utils";
 
 interface CartState {
-  items: ICartItem[];
-  addItem: (item: ICartItem) => void;
+  items: IClientCartItem[];
+  addItem: (item: IClientCartItem) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -21,11 +21,13 @@ export const useCartStore = create<CartState>()(
 
       addItem: (item) => {
         set((state) => {
-          const existing = state.items.find((i) => i.productId === item.productId);
+          const existing = state.items.find(
+            (i) => i.productId === item.productId && i.variantSku === item.variantSku
+          );
           if (existing) {
             return {
               items: state.items.map((i) =>
-                i.productId === item.productId
+                i.productId === item.productId && i.variantSku === item.variantSku
                   ? { ...i, quantity: Math.min(i.quantity + 1, i.stock) }
                   : i
               ),
@@ -55,19 +57,13 @@ export const useCartStore = create<CartState>()(
 
       clearCart: () => set({ items: [] }),
 
-      subtotal: () => {
-        return get().items.reduce((sum, i) => {
-          const price = i.salePrice ?? i.price;
-          return sum + price * i.quantity;
-        }, 0);
-      },
+      subtotal: () =>
+        get().items.reduce((sum, i) => sum + i.sellingPrice * i.quantity, 0),
 
       deliveryCharge: () => getDeliveryCharge(get().subtotal()),
 
       total: () => get().subtotal() + get().deliveryCharge(),
     }),
-    {
-      name: "freshcart-cart",
-    }
+    { name: "freshcart-cart" }
   )
 );

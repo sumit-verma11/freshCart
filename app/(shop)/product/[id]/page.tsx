@@ -7,7 +7,7 @@ import Product from "@/models/Product";
 import ProductCard from "@/components/ProductCard";
 import AddToCartButton from "@/components/AddToCartButton";
 import { formatPrice, calculateDiscount } from "@/lib/utils";
-import { IProduct } from "@/types";
+import { ICategory, IProduct } from "@/types";
 
 interface Props {
   params: { id: string };
@@ -21,9 +21,9 @@ async function getProduct(id: string): Promise<IProduct | null> {
   return doc as unknown as IProduct | null;
 }
 
-async function getRelated(category: string, excludeId: string): Promise<IProduct[]> {
+async function getRelated(categoryId: string, excludeId: string): Promise<IProduct[]> {
   await connectDB();
-  return Product.find({ category, _id: { $ne: excludeId } })
+  return Product.find({ category: categoryId, _id: { $ne: excludeId } })
     .limit(4)
     .lean() as unknown as IProduct[];
 }
@@ -41,9 +41,20 @@ export default async function ProductPage({ params }: Props) {
   const product = await getProduct(params.id);
   if (!product) notFound();
 
-  const related = await getRelated(product.category, product._id.toString());
-  const discount = calculateDiscount(product.price, product.salePrice);
-  const effectivePrice = product.salePrice ?? product.price;
+  const v = product.variants[0];
+  const discount = v ? calculateDiscount(v.mrp, v.sellingPrice) : 0;
+  const effectivePrice = v?.sellingPrice ?? 0;
+
+  // category may be populated (ICategory) or a raw ObjectId
+  const categoryName =
+    product.category !== null &&
+    typeof product.category === "object" &&
+    "name" in product.category
+      ? (product.category as ICategory).name
+      : "";
+  const categoryId = product.category.toString();
+
+  const related = await getRelated(categoryId, product._id.toString());
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -51,11 +62,15 @@ export default async function ProductPage({ params }: Props) {
       <nav className="flex items-center gap-2 text-sm text-muted mb-8">
         <Link href="/" className="hover:text-primary">Home</Link>
         <ChevronRight className="w-3.5 h-3.5" />
-        <Link href={`/category/${encodeURIComponent(product.category)}`}
-              className="hover:text-primary">
-          {product.category}
-        </Link>
-        <ChevronRight className="w-3.5 h-3.5" />
+        {categoryName && (
+          <>
+            <Link href={`/category/${encodeURIComponent(categoryName)}`}
+                  className="hover:text-primary">
+              {categoryName}
+            </Link>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </>
+        )}
         <span className="text-dark font-medium truncate max-w-[200px]">{product.name}</span>
       </nav>
 
@@ -93,9 +108,9 @@ export default async function ProductPage({ params }: Props) {
 
         {/* Info */}
         <div>
-          <p className="text-muted text-sm font-medium mb-1">{product.category}</p>
+          {categoryName && <p className="text-muted text-sm font-medium mb-1">{categoryName}</p>}
           <h1 className="text-3xl font-extrabold text-dark mb-2">{product.name}</h1>
-          <p className="text-muted text-sm mb-4">{product.unit}</p>
+          {v && <p className="text-muted text-sm mb-4">{v.size}{v.unit}</p>}
 
           {/* Rating */}
           {product.reviewCount > 0 && (
@@ -112,8 +127,8 @@ export default async function ProductPage({ params }: Props) {
           {/* Price */}
           <div className="flex items-center gap-3 mb-6">
             <span className="text-4xl font-extrabold text-primary">{formatPrice(effectivePrice)}</span>
-            {product.salePrice && product.salePrice < product.price && (
-              <span className="text-xl text-muted line-through">{formatPrice(product.price)}</span>
+            {v && v.sellingPrice < v.mrp && (
+              <span className="text-xl text-muted line-through">{formatPrice(v.mrp)}</span>
             )}
             {discount > 0 && (
               <span className="text-success font-bold text-sm">{discount}% off</span>
@@ -136,11 +151,11 @@ export default async function ProductPage({ params }: Props) {
 
           {/* Stock */}
           <div className="mb-6">
-            {product.stock > 10 ? (
+            {product.stockQty > 10 ? (
               <span className="text-success text-sm font-semibold">✓ In Stock</span>
-            ) : product.stock > 0 ? (
+            ) : product.stockQty > 0 ? (
               <span className="text-secondary text-sm font-semibold">
-                ⚠ Only {product.stock} left
+                ⚠ Only {product.stockQty} left
               </span>
             ) : (
               <span className="text-danger text-sm font-semibold">✗ Out of Stock</span>
@@ -177,10 +192,12 @@ export default async function ProductPage({ params }: Props) {
         <section>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-dark">You may also like</h2>
-            <Link href={`/category/${encodeURIComponent(product.category)}`}
-                  className="text-primary text-sm font-semibold hover:underline">
-              View All
-            </Link>
+            {categoryName && (
+              <Link href={`/category/${encodeURIComponent(categoryName)}`}
+                    className="text-primary text-sm font-semibold hover:underline">
+                View All
+              </Link>
+            )}
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {related.map((p) => (

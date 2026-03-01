@@ -5,6 +5,8 @@ import { connectDB } from "@/lib/mongoose";
 import Product from "@/models/Product";
 import { slugify } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 async function requireAdmin() {
   const session = await getServerSession(authOptions);
   if (!session || session.user.role !== "admin") return null;
@@ -20,13 +22,15 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const {
-      name, description, category, price, salePrice, unit,
-      stock, images, tags, isOrganic, isFeatured, serviceablePincodes,
+      name, description, category,
+      // variant fields (flat form → wrapped into variants[])
+      mrp, sellingPrice, size, unit,
+      stockQty, images, tags, isOrganic, isFeatured, serviceablePincodes,
     } = body;
 
-    if (!name || !description || !category || !price || !unit) {
+    if (!name || !description || !category || !mrp || !unit || !size) {
       return NextResponse.json(
-        { success: false, error: "Name, description, category, price, and unit are required" },
+        { success: false, error: "Name, description, category, mrp, size, and unit are required" },
         { status: 400 }
       );
     }
@@ -42,14 +46,30 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const sku = `${slugify(name).toUpperCase()}-${String(size).toUpperCase()}${String(unit).toUpperCase()}`;
+
     const product = await Product.create({
-      name, slug, description, category,
-      price, salePrice, unit, stock: stock ?? 0,
-      images: images ?? [], tags: tags ?? [],
+      name,
+      slug,
+      description,
+      category,
+      variants: [{
+        size: String(size),
+        unit: String(unit),
+        mrp: Number(mrp),
+        sellingPrice: sellingPrice ? Number(sellingPrice) : Number(mrp),
+        sku,
+      }],
+      stockQty: stockQty ?? 0,
+      isAvailable: (stockQty ?? 0) > 0,
+      images: images ?? [],
+      tags: tags ?? [],
       isOrganic: isOrganic ?? false,
       isFeatured: isFeatured ?? false,
-      rating: 0, reviewCount: 0,
+      rating: 0,
+      reviewCount: 0,
       serviceablePincodes: serviceablePincodes ?? [],
+      createdBy: session.user.id,
     });
 
     return NextResponse.json({ success: true, data: product }, { status: 201 });

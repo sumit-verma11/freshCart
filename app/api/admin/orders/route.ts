@@ -5,6 +5,8 @@ import { connectDB } from "@/lib/mongoose";
 import Order from "@/models/Order";
 import { OrderStatus } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 async function requireAdmin() {
   const session = await getServerSession(authOptions);
   if (!session || session.user.role !== "admin") return null;
@@ -12,7 +14,7 @@ async function requireAdmin() {
 }
 
 const VALID_STATUSES: OrderStatus[] = [
-  "pending", "confirmed", "processing", "shipped", "delivered", "cancelled",
+  "pending", "confirmed", "out_for_delivery", "delivered", "cancelled",
 ];
 
 export async function GET(req: NextRequest) {
@@ -32,12 +34,12 @@ export async function GET(req: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const query: Record<string, any> = {};
     if (status && VALID_STATUSES.includes(status as OrderStatus)) {
-      query.orderStatus = status;
+      query.status = status;
     }
 
     const [orders, total] = await Promise.all([
       Order.find(query)
-        .sort({ createdAt: -1 })
+        .sort({ placedAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit)
         .populate("userId", "name email phone")
@@ -63,12 +65,12 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
     }
 
-    const { id, orderStatus, paymentStatus } = await req.json();
+    const { id, status } = await req.json();
     if (!id) {
       return NextResponse.json({ success: false, error: "Order ID required" }, { status: 400 });
     }
 
-    if (orderStatus && !VALID_STATUSES.includes(orderStatus)) {
+    if (status && !VALID_STATUSES.includes(status)) {
       return NextResponse.json({ success: false, error: "Invalid order status" }, { status: 400 });
     }
 
@@ -76,11 +78,7 @@ export async function PATCH(req: NextRequest) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updates: Record<string, any> = {};
-    if (orderStatus) {
-      updates.orderStatus = orderStatus;
-      if (orderStatus === "delivered") updates.deliveredAt = new Date();
-    }
-    if (paymentStatus) updates.paymentStatus = paymentStatus;
+    if (status) updates.status = status;
 
     const order = await Order.findByIdAndUpdate(id, updates, { new: true });
     if (!order) {

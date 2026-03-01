@@ -7,17 +7,14 @@ import Link from "next/link";
 import { MapPin, CreditCard, Truck, CheckCircle, ArrowRight, Lock } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
-import { PaymentMethod } from "@/types";
 import toast from "react-hot-toast";
 
-const PAYMENT_OPTIONS: { value: PaymentMethod; label: string; icon: string }[] = [
-  { value: "cod", label: "Cash on Delivery", icon: "💵" },
-  { value: "upi", label: "UPI (GPay / PhonePe / Paytm)", icon: "📱" },
-  { value: "card", label: "Credit / Debit Card", icon: "💳" },
-  { value: "netbanking", label: "Net Banking", icon: "🏦" },
-];
-
 type Step = "address" | "payment" | "review";
+
+// COD is the only billing type supported in v1
+const PAYMENT_OPTIONS = [
+  { value: "COD" as const, label: "Cash on Delivery", icon: "💵" },
+];
 
 export default function CheckoutPage() {
   const { data: session, status } = useSession();
@@ -26,16 +23,12 @@ export default function CheckoutPage() {
   const [hydrated, setHydrated] = useState(false);
   const [step, setStep] = useState<Step>("address");
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
 
   const [address, setAddress] = useState({
-    label: "Home",
-    line1: "",
-    line2: "",
+    street: "",
     city: "",
     state: "",
     pincode: "",
-    isDefault: true,
   });
 
   useEffect(() => {
@@ -77,10 +70,11 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           items: items.map((i) => ({
             productId: i.productId,
-            quantity: i.quantity,
+            variantSku: i.variantSku,
+            qty: i.quantity,
           })),
-          shippingAddress: address,
-          paymentMethod,
+          deliveryAddress: address,
+          estimatedDelivery: { minHours: 2, maxHours: 4 },
         }),
       });
       const data = await res.json();
@@ -114,7 +108,7 @@ export default function CheckoutPage() {
           <div key={s.key} className="flex items-center gap-2">
             <button
               onClick={() => {
-                if (s.key === "payment" && !address.line1) return;
+                if (s.key === "payment" && !address.street) return;
                 setStep(s.key);
               }}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold
@@ -142,21 +136,12 @@ export default function CheckoutPage() {
               </h2>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-dark mb-1.5">Address Line 1 *</label>
+                  <label className="block text-sm font-medium text-dark mb-1.5">Street Address *</label>
                   <input
                     className="input"
-                    placeholder="Flat/House No, Building Name, Street"
-                    value={address.line1}
-                    onChange={(e) => setAddress({ ...address, line1: e.target.value })}
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-dark mb-1.5">Address Line 2</label>
-                  <input
-                    className="input"
-                    placeholder="Area, Locality (optional)"
-                    value={address.line2}
-                    onChange={(e) => setAddress({ ...address, line2: e.target.value })}
+                    placeholder="Flat/House No, Building Name, Street, Area"
+                    value={address.street}
+                    onChange={(e) => setAddress({ ...address, street: e.target.value })}
                   />
                 </div>
                 <div>
@@ -187,22 +172,10 @@ export default function CheckoutPage() {
                     onChange={(e) => setAddress({ ...address, pincode: e.target.value.replace(/\D/g, "") })}
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-dark mb-1.5">Label</label>
-                  <select
-                    className="input"
-                    value={address.label}
-                    onChange={(e) => setAddress({ ...address, label: e.target.value })}
-                  >
-                    <option>Home</option>
-                    <option>Work</option>
-                    <option>Other</option>
-                  </select>
-                </div>
               </div>
               <button
                 onClick={() => {
-                  if (!address.line1 || !address.city || !address.state || !address.pincode) {
+                  if (!address.street || !address.city || !address.state || !address.pincode) {
                     toast.error("Please fill all required fields");
                     return;
                   }
@@ -224,18 +197,15 @@ export default function CheckoutPage() {
                 {PAYMENT_OPTIONS.map((opt) => (
                   <label
                     key={opt.value}
-                    className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer
-                                transition-all ${paymentMethod === opt.value
-                                  ? "border-primary bg-accent"
-                                  : "border-border hover:border-primary/40"
-                                }`}
+                    className="flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer
+                                transition-all border-primary bg-accent"
                   >
                     <input
                       type="radio"
                       name="payment"
                       value={opt.value}
-                      checked={paymentMethod === opt.value}
-                      onChange={() => setPaymentMethod(opt.value)}
+                      defaultChecked
+                      readOnly
                       className="accent-primary"
                     />
                     <span className="text-2xl">{opt.icon}</span>
@@ -261,30 +231,26 @@ export default function CheckoutPage() {
               {/* Delivery address summary */}
               <div className="bg-accent rounded-xl p-4 mb-4">
                 <p className="text-xs font-semibold text-muted uppercase mb-2">Delivery Address</p>
-                <p className="text-sm text-dark font-medium">{address.label}</p>
-                <p className="text-sm text-muted">
-                  {address.line1}{address.line2 ? `, ${address.line2}` : ""},{" "}
-                  {address.city}, {address.state} — {address.pincode}
+                <p className="text-sm text-dark">
+                  {address.street}, {address.city}, {address.state} — {address.pincode}
                 </p>
               </div>
 
               {/* Payment summary */}
               <div className="bg-accent rounded-xl p-4 mb-6">
                 <p className="text-xs font-semibold text-muted uppercase mb-2">Payment Method</p>
-                <p className="text-sm text-dark font-medium">
-                  {PAYMENT_OPTIONS.find((o) => o.value === paymentMethod)?.label}
-                </p>
+                <p className="text-sm text-dark font-medium">💵 Cash on Delivery</p>
               </div>
 
               {/* Items */}
               <div className="space-y-2 mb-6">
                 {items.map((item) => (
-                  <div key={item.productId} className="flex items-center justify-between text-sm">
+                  <div key={`${item.productId}-${item.variantSku}`} className="flex items-center justify-between text-sm">
                     <span className="text-dark">
                       {item.name} <span className="text-muted">× {item.quantity}</span>
                     </span>
                     <span className="font-semibold text-dark">
-                      {formatPrice((item.salePrice ?? item.price) * item.quantity)}
+                      {formatPrice(item.sellingPrice * item.quantity)}
                     </span>
                   </div>
                 ))}
@@ -314,10 +280,10 @@ export default function CheckoutPage() {
             <h3 className="font-bold text-dark mb-4">Order Summary</h3>
             <div className="space-y-2 text-sm mb-4">
               {items.map((item) => (
-                <div key={item.productId} className="flex justify-between text-muted">
+                <div key={`${item.productId}-${item.variantSku}`} className="flex justify-between text-muted">
                   <span className="truncate max-w-[130px]">{item.name}</span>
                   <span className="font-medium text-dark ml-2">
-                    {formatPrice((item.salePrice ?? item.price) * item.quantity)}
+                    {formatPrice(item.sellingPrice * item.quantity)}
                   </span>
                 </div>
               ))}

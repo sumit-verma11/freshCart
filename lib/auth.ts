@@ -25,7 +25,7 @@ export const authOptions: NextAuthOptions = {
         await connectDB();
 
         const user = await User.findOne({ email: credentials.email.toLowerCase() }).select(
-          "+password"
+          "+passwordHash"
         );
 
         if (!user) throw new Error("No account found with this email");

@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingCart, Leaf, Star } from "lucide-react";
-import { IProduct } from "@/types";
+import { ShoppingCart, Leaf, Star, Minus, Plus } from "lucide-react";
+import { ICategory, IProduct } from "@/types";
 import { formatPrice, calculateDiscount } from "@/lib/utils";
 import { useCartStore } from "@/store/cart";
 import toast from "react-hot-toast";
@@ -13,25 +13,47 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
-  const addItem = useCartStore((s) => s.addItem);
-  const discount = calculateDiscount(product.price, product.salePrice);
-  const isOutOfStock = product.stock === 0;
-  const effectivePrice = product.salePrice ?? product.price;
+  const { items, addItem, updateQuantity } = useCartStore();
+  const v = product.variants[0];
+  const discount = v ? calculateDiscount(v.mrp, v.sellingPrice) : 0;
+  const isOutOfStock = !product.isAvailable || product.stockQty === 0;
+  const effectivePrice = v?.sellingPrice ?? 0;
 
-  function handleAddToCart(e: React.MouseEvent) {
+  // Check if this product+variant is already in cart
+  const cartItem = items.find(
+    (i) => i.productId === product._id.toString() && i.variantSku === v?.sku
+  );
+  const qty = cartItem?.quantity ?? 0;
+
+  const categoryName =
+    product.category !== null &&
+    typeof product.category === "object" &&
+    "name" in product.category
+      ? (product.category as ICategory).name
+      : "";
+
+  function handleAdd(e: React.MouseEvent) {
     e.preventDefault();
-    if (isOutOfStock) return;
+    e.stopPropagation();
+    if (isOutOfStock || !v) return;
     addItem({
       productId: product._id.toString(),
+      variantSku: v.sku,
       name: product.name,
-      price: product.price,
-      salePrice: product.salePrice,
       image: product.images[0] ?? "/placeholder.png",
-      unit: product.unit,
+      unit: `${v.size}${v.unit}`,
+      mrp: v.mrp,
+      sellingPrice: v.sellingPrice,
       quantity: 1,
-      stock: product.stock,
+      stock: product.stockQty,
     });
-    toast.success(`${product.name} added to cart`);
+    if (qty === 0) toast.success(`${product.name} added to cart`);
+  }
+
+  function handleDecrement(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    updateQuantity(product._id.toString(), qty - 1);
   }
 
   return (
@@ -39,13 +61,27 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="card-hover overflow-hidden h-full flex flex-col">
         {/* Image */}
         <div className="relative aspect-square bg-accent overflow-hidden">
-          <Image
-            src={product.images[0] ?? "/placeholder.png"}
-            alt={product.name}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          />
+          {product.images[0] ? (
+            <Image
+              src={product.images[0]}
+              alt={product.name}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-5xl">🛒</div>
+          )}
+
+          {/* Availability dot */}
+          <div className="absolute top-2 right-2">
+            <span
+              className={`w-2.5 h-2.5 rounded-full block border-2 border-white shadow-sm
+                          ${isOutOfStock ? "bg-danger" : "bg-success"}`}
+              title={isOutOfStock ? "Out of Stock" : "In Stock"}
+            />
+          </div>
+
           {/* Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             {product.isOrganic && (
@@ -56,20 +92,27 @@ export default function ProductCard({ product }: ProductCardProps) {
             {discount > 0 && (
               <span className="badge-sale">{discount}% OFF</span>
             )}
-            {isOutOfStock && (
-              <span className="badge-oos">Out of Stock</span>
-            )}
           </div>
+
+          {/* Out of stock overlay */}
+          {isOutOfStock && (
+            <div className="absolute inset-0 bg-white/60 flex items-center justify-center">
+              <span className="badge-oos text-sm font-bold px-3 py-1.5">Out of Stock</span>
+            </div>
+          )}
         </div>
 
         {/* Info */}
         <div className="p-3 flex flex-col flex-1 gap-2">
           <div>
-            <p className="text-xs text-muted mb-0.5 font-medium">{product.category}</p>
-            <h3 className="font-semibold text-dark text-sm leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+            {categoryName && (
+              <p className="text-xs text-muted mb-0.5 font-medium">{categoryName}</p>
+            )}
+            <h3 className="font-semibold text-dark text-sm leading-tight line-clamp-2
+                           group-hover:text-primary transition-colors">
               {product.name}
             </h3>
-            <p className="text-xs text-muted mt-0.5">{product.unit}</p>
+            {v && <p className="text-xs text-muted mt-0.5">{v.size}{v.unit}</p>}
           </div>
 
           {/* Rating */}
@@ -81,25 +124,56 @@ export default function ProductCard({ product }: ProductCardProps) {
             </div>
           )}
 
-          {/* Price + Add */}
-          <div className="flex items-center justify-between mt-auto pt-1">
-            <div>
-              <span className="price-current">{formatPrice(effectivePrice)}</span>
-              {product.salePrice && product.salePrice < product.price && (
-                <span className="price-original ml-2">{formatPrice(product.price)}</span>
+          {/* Price + cart controls */}
+          <div className="flex items-center justify-between mt-auto pt-1 gap-2">
+            <div className="min-w-0">
+              <span className="price-current text-base">{formatPrice(effectivePrice)}</span>
+              {v && v.sellingPrice < v.mrp && (
+                <span className="price-original text-xs ml-1.5">{formatPrice(v.mrp)}</span>
               )}
             </div>
 
-            <button
-              onClick={handleAddToCart}
-              disabled={isOutOfStock}
-              className="bg-primary text-white w-8 h-8 rounded-xl flex items-center justify-center
-                         hover:bg-primary-600 active:scale-95 transition-all duration-150
-                         disabled:opacity-40 disabled:cursor-not-allowed"
-              aria-label="Add to cart"
-            >
-              <ShoppingCart className="w-4 h-4" />
-            </button>
+            {/* Cart button or qty controls */}
+            {qty > 0 ? (
+              <div
+                className="flex items-center border-2 border-primary rounded-xl overflow-hidden shrink-0"
+                onClick={(e) => e.preventDefault()}
+              >
+                <button
+                  onClick={handleDecrement}
+                  className="w-7 h-7 flex items-center justify-center text-primary
+                             hover:bg-accent active:bg-accent/80 transition-colors"
+                  aria-label="Decrease quantity"
+                >
+                  <Minus className="w-3.5 h-3.5" />
+                </button>
+                <span className="w-7 text-center text-sm font-bold text-dark leading-none">
+                  {qty}
+                </span>
+                <button
+                  onClick={handleAdd}
+                  disabled={qty >= product.stockQty}
+                  className="w-7 h-7 flex items-center justify-center text-primary
+                             hover:bg-accent active:bg-accent/80 transition-colors
+                             disabled:opacity-40 disabled:cursor-not-allowed"
+                  aria-label="Increase quantity"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleAdd}
+                disabled={isOutOfStock}
+                className="bg-primary text-white w-8 h-8 rounded-xl flex items-center
+                           justify-center hover:bg-primary-600 active:scale-95
+                           transition-all duration-150 disabled:opacity-40
+                           disabled:cursor-not-allowed shrink-0"
+                aria-label="Add to cart"
+              >
+                <ShoppingCart className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -23,19 +23,20 @@ async function getDashboardStats() {
     Product.countDocuments(),
     Order.countDocuments(),
     User.countDocuments({ role: "user" }),
-    Order.find().sort({ createdAt: -1 }).limit(5).populate("userId", "name email").lean(),
-    Product.find({ stock: { $lt: 10 } }).sort({ stock: 1 }).limit(5).lean(),
+    Order.find().sort({ placedAt: -1 }).limit(5).populate("userId", "name email").lean(),
+    Product.find({ stockQty: { $lt: 10 } }).sort({ stockQty: 1 }).limit(5).lean(),
     Order.aggregate([
-      { $group: { _id: "$orderStatus", count: { $sum: 1 } } },
+      { $group: { _id: "$status", count: { $sum: 1 } } },
     ]),
     Order.aggregate([
-      { $match: { paymentStatus: "paid" } },
-      { $group: { _id: null, total: { $sum: "$total" } } },
+      { $group: { _id: null, total: { $sum: "$grandTotal" } } },
     ]),
   ]);
 
-  const statusCounts = Object.fromEntries(orderStats.map((s) => [s._id, s.count]));
-  const totalRevenue = revenue[0]?.total ?? 0;
+  const statusCounts = Object.fromEntries(
+    (orderStats as { _id: string; count: number }[]).map((s) => [s._id, s.count])
+  );
+  const totalRevenue = (revenue[0] as { total?: number } | undefined)?.total ?? 0;
 
   return { totalProducts, totalOrders, totalUsers, recentOrders, lowStockProducts, statusCounts, totalRevenue };
 }
@@ -53,7 +54,7 @@ export default async function DashboardPage() {
 
   const orderStatusCards = [
     { label: "Pending", count: statusCounts.pending || 0, icon: Clock, color: "text-amber-600 bg-amber-50" },
-    { label: "Processing", count: statusCounts.processing || 0, icon: TrendingUp, color: "text-purple-600 bg-purple-50" },
+    { label: "Confirmed", count: statusCounts.confirmed || 0, icon: TrendingUp, color: "text-purple-600 bg-purple-50" },
     { label: "Delivered", count: statusCounts.delivered || 0, icon: CheckCircle, color: "text-success bg-green-50" },
     { label: "Cancelled", count: statusCounts.cancelled || 0, icon: AlertTriangle, color: "text-danger bg-red-50" },
   ];
@@ -109,16 +110,16 @@ export default async function DashboardPage() {
                 <div key={order._id.toString()}
                      className="flex items-center justify-between py-3 border-b border-border last:border-0">
                   <div>
-                    <p className="text-sm font-semibold text-dark">#{order.orderNumber}</p>
+                    <p className="text-sm font-semibold text-dark">#{order.orderNumber as string}</p>
                     <p className="text-xs text-muted">{user?.name}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold text-primary">{formatPrice(order.total)}</p>
+                    <p className="text-sm font-bold text-primary">{formatPrice(order.grandTotal as number)}</p>
                     <span className={`text-xs font-medium capitalize px-2 py-0.5 rounded-full
-                                      ${order.orderStatus === "delivered" ? "bg-green-100 text-success" :
-                                        order.orderStatus === "cancelled" ? "bg-red-100 text-danger" :
+                                      ${order.status === "delivered" ? "bg-green-100 text-success" :
+                                        order.status === "cancelled" ? "bg-red-100 text-danger" :
                                         "bg-amber-100 text-amber-700"}`}>
-                      {order.orderStatus}
+                      {order.status as string}
                     </span>
                   </div>
                 </div>
@@ -142,11 +143,10 @@ export default async function DashboardPage() {
                      className="flex items-center justify-between py-3 border-b border-border last:border-0">
                   <div>
                     <p className="text-sm font-semibold text-dark line-clamp-1">{product.name}</p>
-                    <p className="text-xs text-muted">{product.category}</p>
                   </div>
                   <span className={`text-xs font-bold px-2.5 py-1 rounded-full
-                                    ${product.stock === 0 ? "bg-red-100 text-danger" : "bg-amber-100 text-amber-700"}`}>
-                    {product.stock === 0 ? "Out of Stock" : `${product.stock} left`}
+                                    ${product.stockQty === 0 ? "bg-red-100 text-danger" : "bg-amber-100 text-amber-700"}`}>
+                    {product.stockQty === 0 ? "Out of Stock" : `${product.stockQty} left`}
                   </span>
                 </div>
               ))}

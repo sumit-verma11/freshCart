@@ -9,14 +9,13 @@ import {
 import toast from "react-hot-toast";
 
 const STATUS_OPTIONS: OrderStatus[] = [
-  "pending", "confirmed", "processing", "shipped", "delivered", "cancelled",
+  "pending", "confirmed", "out_for_delivery", "delivered", "cancelled",
 ];
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
   pending: "bg-amber-100 text-amber-700",
   confirmed: "bg-blue-100 text-blue-700",
-  processing: "bg-purple-100 text-purple-700",
-  shipped: "bg-cyan-100 text-cyan-700",
+  out_for_delivery: "bg-cyan-100 text-cyan-700",
   delivered: "bg-green-100 text-green-700",
   cancelled: "bg-red-100 text-red-700",
 };
@@ -24,10 +23,17 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
 const STATUS_ICONS: Record<OrderStatus, React.ReactNode> = {
   pending: <Clock className="w-3.5 h-3.5" />,
   confirmed: <CheckCircle className="w-3.5 h-3.5" />,
-  processing: <Package className="w-3.5 h-3.5" />,
-  shipped: <Truck className="w-3.5 h-3.5" />,
+  out_for_delivery: <Truck className="w-3.5 h-3.5" />,
   delivered: <CheckCircle className="w-3.5 h-3.5" />,
   cancelled: <XCircle className="w-3.5 h-3.5" />,
+};
+
+const STATUS_LABELS: Record<OrderStatus, string> = {
+  pending: "Pending",
+  confirmed: "Confirmed",
+  out_for_delivery: "Out for Delivery",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
 };
 
 export default function ManageOrdersPage() {
@@ -50,18 +56,18 @@ export default function ManageOrdersPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
-  async function updateStatus(orderId: string, orderStatus: OrderStatus) {
+  async function updateStatus(orderId: string, status: OrderStatus) {
     setUpdating(orderId);
     try {
       const res = await fetch("/api/admin/orders", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: orderId, orderStatus }),
+        body: JSON.stringify({ id: orderId, status }),
       });
       const data = await res.json();
       if (data.success) {
         setOrders((prev) =>
-          prev.map((o) => (o._id.toString() === orderId ? { ...o, orderStatus } : o))
+          prev.map((o) => (o._id.toString() === orderId ? { ...o, status } : o))
         );
         toast.success("Order status updated");
       } else {
@@ -98,7 +104,7 @@ export default function ManageOrdersPage() {
                           : "bg-white border border-border text-muted hover:border-primary hover:text-primary"
                         }`}
           >
-            {s === "all" ? "All Orders" : s}
+            {s === "all" ? "All Orders" : STATUS_LABELS[s]}
           </button>
         ))}
       </div>
@@ -119,7 +125,7 @@ export default function ManageOrdersPage() {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-border">
                 <tr>
-                  {["Order #", "Customer", "Items", "Total", "Payment", "Status", "Date", "Action"].map(
+                  {["Order #", "Customer", "Items", "Total", "Billing", "Status", "Date", "Action"].map(
                     (h) => (
                       <th key={h} className="text-left px-5 py-3.5 text-xs font-semibold text-muted uppercase tracking-wide">
                         {h}
@@ -141,24 +147,24 @@ export default function ManageOrdersPage() {
                         <p className="text-xs text-muted">{user?.email}</p>
                       </td>
                       <td className="px-5 py-4 text-muted">{order.items.length} item(s)</td>
-                      <td className="px-5 py-4 font-bold text-primary">{formatPrice(order.total)}</td>
-                      <td className="px-5 py-4 capitalize text-muted">{order.paymentMethod}</td>
+                      <td className="px-5 py-4 font-bold text-primary">{formatPrice(order.grandTotal)}</td>
+                      <td className="px-5 py-4 text-muted">{order.billingType}</td>
                       <td className="px-5 py-4">
                         <span className={`flex items-center gap-1.5 w-fit text-xs font-semibold
-                                         px-2.5 py-1 rounded-full capitalize
-                                         ${STATUS_COLORS[order.orderStatus]}`}>
-                          {STATUS_ICONS[order.orderStatus]}
-                          {order.orderStatus}
+                                         px-2.5 py-1 rounded-full
+                                         ${STATUS_COLORS[order.status]}`}>
+                          {STATUS_ICONS[order.status]}
+                          {STATUS_LABELS[order.status]}
                         </span>
                       </td>
                       <td className="px-5 py-4 text-muted whitespace-nowrap">
-                        {new Date(order.createdAt).toLocaleDateString("en-IN", {
+                        {new Date(order.placedAt).toLocaleDateString("en-IN", {
                           day: "numeric", month: "short",
                         })}
                       </td>
                       <td className="px-5 py-4">
                         <select
-                          value={order.orderStatus}
+                          value={order.status}
                           disabled={updating === order._id.toString()}
                           onChange={(e) =>
                             updateStatus(order._id.toString(), e.target.value as OrderStatus)
@@ -168,8 +174,8 @@ export default function ManageOrdersPage() {
                                      bg-white cursor-pointer"
                         >
                           {STATUS_OPTIONS.map((s) => (
-                            <option key={s} value={s} className="capitalize">
-                              {s.charAt(0).toUpperCase() + s.slice(1)}
+                            <option key={s} value={s}>
+                              {STATUS_LABELS[s]}
                             </option>
                           ))}
                         </select>

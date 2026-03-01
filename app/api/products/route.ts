@@ -1,37 +1,48 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { connectDB } from "@/lib/mongoose";
 import Product from "@/models/Product";
+import { ok, fail, paginated, requireAdmin, zodFail } from "@/lib/api";
+import { createProductSchema } from "@/lib/validators";
+import { ZodError } from "zod";
 
 export const dynamic = "force-dynamic";
-import { PaginatedResponse } from "@/types";
 
 export async function GET(req: NextRequest) {
   try {
     await connectDB();
 
     const { searchParams } = new URL(req.url);
-    const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
-    const limit = Math.min(50, parseInt(searchParams.get("limit") || "12"));
-    const category = searchParams.get("category");
-    const search = searchParams.get("search");
-    const featured = searchParams.get("featured");
-    const pincode = searchParams.get("pincode");
-    const sortBy = searchParams.get("sort") || "createdAt";
-    const sortOrder = searchParams.get("order") === "asc" ? 1 : -1;
+    const page     = Math.max(1,  parseInt(searchParams.get("page")  || "1"));
+    const limit    = Math.min(50, parseInt(searchParams.get("limit") || "12"));
+    const category    = searchParams.get("category");
+    const subCategory = searchParams.get("subcategory");
+    const search      = searchParams.get("search");
+    const featured    = searchParams.get("featured");
+    const available   = searchParams.get("available");
+    const pincode     = searchParams.get("pincode");
+    const maxPrice    = searchParams.get("maxPrice");
+    const organic     = searchParams.get("organic");
+    const sortBy      = searchParams.get("sort") || "createdAt";
+    const sortOrder   = searchParams.get("order") === "asc" ? 1 : -1;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const query: Record<string, any> = {};
 
-    if (category) query.category = category;
+    if (category)    query.category    = category;
+    if (subCategory) query.subCategory = subCategory;
     if (featured === "true") query.isFeatured = true;
-    if (pincode) query.serviceablePincodes = pincode;
-    if (search) query.$text = { $search: search };
+    if (available !== "false") query.isAvailable = true; // default: only available products
+    if (pincode)     query.serviceablePincodes = pincode;
+    if (search)      query.$text = { $search: search };
+    if (organic === "true") query.isOrganic = true;
+    if (maxPrice)    query["variants.sellingPrice"] = { $lte: Number(maxPrice) };
 
-    const allowedSortFields = ["price", "rating", "createdAt", "name", "reviewCount"];
+    const allowedSortFields = ["sellingPrice", "createdAt", "name", "stockQty"];
     const sortField = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
 
     const [products, total] = await Promise.all([
       Product.find(query)
+        .populate("category", "name slug")
         .sort({ [sortField]: sortOrder })
         .skip((page - 1) * limit)
         .limit(limit)
@@ -39,18 +50,28 @@ export async function GET(req: NextRequest) {
       Product.countDocuments(query),
     ]);
 
-    return NextResponse.json<PaginatedResponse<unknown>>({
-      success: true,
-      data: products,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
+    return paginated(products, page, limit, total);
   } catch (error) {
     console.error("[PRODUCTS GET]", error);
-    return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 });
+    return fail("Internal server error", 500);
+  }
+}
+
+export async function POST(req: NextRequest) {
+  const { error } = await requireAdmin();
+  if (error) return error;
+
+  try {
+    await connectDB();
+
+    const body = await req.json();
+    const parsed = createProductSchema.safeParse(body);
+    if (!parsed.success) return zodFail(parsed.error as ZodError);
+
+    const product = await Product.create(parsed.data);
+    return ok(product, 201);
+  } catch (error) {
+    console.error("[PRODUCTS POST]", error);
+    return fail("Internal server error", 500);
   }
 }

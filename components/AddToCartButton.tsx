@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { ShoppingCart, Minus, Plus } from "lucide-react";
 import { IProduct } from "@/types";
 import { useCartStore } from "@/store/cart";
@@ -8,25 +7,30 @@ import toast from "react-hot-toast";
 
 export default function AddToCartButton({ product }: { product: IProduct }) {
   const { items, addItem, updateQuantity } = useCartStore();
-  const cartItem = items.find((i) => i.productId === product._id.toString());
+  const v = product.variants[0];
+  const cartItem = items.find(
+    (i) => i.productId === product._id.toString() && i.variantSku === v?.sku
+  );
   const quantity = cartItem?.quantity ?? 0;
+  const isOutOfStock = !product.isAvailable || product.stockQty === 0;
 
   function handleAdd() {
-    if (product.stock === 0) return;
+    if (isOutOfStock || !v) return;
     addItem({
       productId: product._id.toString(),
+      variantSku: v.sku,
       name: product.name,
-      price: product.price,
-      salePrice: product.salePrice,
       image: product.images[0] ?? "/placeholder.png",
-      unit: product.unit,
+      unit: `${v.size}${v.unit}`,
+      mrp: v.mrp,
+      sellingPrice: v.sellingPrice,
       quantity: 1,
-      stock: product.stock,
+      stock: product.stockQty,
     });
     if (quantity === 0) toast.success("Added to cart!");
   }
 
-  if (product.stock === 0) {
+  if (isOutOfStock) {
     return (
       <button disabled className="btn-primary w-full opacity-50 cursor-not-allowed">
         Out of Stock
@@ -55,7 +59,7 @@ export default function AddToCartButton({ product }: { product: IProduct }) {
         <span className="w-14 text-center font-bold text-dark text-lg">{quantity}</span>
         <button
           onClick={handleAdd}
-          disabled={quantity >= product.stock}
+          disabled={quantity >= product.stockQty}
           className="w-12 h-12 flex items-center justify-center text-primary hover:bg-accent
                      transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >

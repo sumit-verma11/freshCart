@@ -11,8 +11,7 @@ import { formatPrice } from "@/lib/utils";
 const STATUS_STYLES: Record<OrderStatus, string> = {
   pending: "bg-amber-100 text-amber-700",
   confirmed: "bg-blue-100 text-blue-700",
-  processing: "bg-purple-100 text-purple-700",
-  shipped: "bg-cyan-100 text-cyan-700",
+  out_for_delivery: "bg-cyan-100 text-cyan-700",
   delivered: "bg-green-100 text-green-700",
   cancelled: "bg-red-100 text-red-700",
 };
@@ -20,10 +19,17 @@ const STATUS_STYLES: Record<OrderStatus, string> = {
 const STATUS_ICONS: Record<OrderStatus, React.ReactNode> = {
   pending: <Clock className="w-4 h-4" />,
   confirmed: <CheckCircle className="w-4 h-4" />,
-  processing: <Package className="w-4 h-4" />,
-  shipped: <Truck className="w-4 h-4" />,
+  out_for_delivery: <Truck className="w-4 h-4" />,
   delivered: <CheckCircle className="w-4 h-4" />,
   cancelled: <Package className="w-4 h-4" />,
+};
+
+const STATUS_LABELS: Record<OrderStatus, string> = {
+  pending: "Pending",
+  confirmed: "Confirmed",
+  out_for_delivery: "Out for Delivery",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
 };
 
 function OrdersContent() {
@@ -91,15 +97,15 @@ function OrdersContent() {
                 <div>
                   <p className="font-bold text-dark">#{order.orderNumber}</p>
                   <p className="text-xs text-muted mt-0.5">
-                    {new Date(order.createdAt).toLocaleDateString("en-IN", {
+                    {new Date(order.placedAt).toLocaleDateString("en-IN", {
                       day: "numeric", month: "short", year: "numeric",
                     })}
                   </p>
                 </div>
                 <span className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5
-                                  rounded-full capitalize ${STATUS_STYLES[order.orderStatus]}`}>
-                  {STATUS_ICONS[order.orderStatus]}
-                  {order.orderStatus}
+                                  rounded-full ${STATUS_STYLES[order.status]}`}>
+                  {STATUS_ICONS[order.status]}
+                  {STATUS_LABELS[order.status]}
                 </span>
               </div>
 
@@ -107,9 +113,9 @@ function OrdersContent() {
               <div className="space-y-1.5 mb-4">
                 {order.items.slice(0, 3).map((item, i) => (
                   <div key={i} className="flex justify-between text-sm text-muted">
-                    <span>{item.name} × {item.quantity}</span>
+                    <span>{item.name} × {item.qty}</span>
                     <span className="text-dark font-medium">
-                      {formatPrice((item.salePrice ?? item.price) * item.quantity)}
+                      {formatPrice(item.price * item.qty)}
                     </span>
                   </div>
                 ))}
@@ -121,11 +127,11 @@ function OrdersContent() {
               <div className="flex items-center justify-between border-t border-border pt-4">
                 <div>
                   <p className="text-xs text-muted">Total</p>
-                  <p className="font-bold text-primary text-lg">{formatPrice(order.total)}</p>
+                  <p className="font-bold text-primary text-lg">{formatPrice(order.grandTotal)}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-muted">Payment</p>
-                  <p className="text-sm font-medium text-dark capitalize">{order.paymentMethod}</p>
+                  <p className="text-sm font-medium text-dark">{order.billingType}</p>
                 </div>
               </div>
             </div>
