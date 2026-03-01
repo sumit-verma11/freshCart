@@ -166,6 +166,7 @@ export default function ProductForm({ initialData, productId }: Props) {
     }
 
     const payload = {
+      ...(isEdit && productId ? { id: productId } : {}),
       name:        name.trim(),
       description: description.trim(),
       subDescription:  subDescription  || undefined,
@@ -192,7 +193,7 @@ export default function ProductForm({ initialData, productId }: Props) {
 
     setLoading(true);
     try {
-      const url    = isEdit ? `/api/products/${productId}` : "/api/products";
+      const url    = isEdit ? `/api/admin/products` : "/api/admin/products";
       const method = isEdit ? "PUT" : "POST";
       const res    = await fetch(url, {
         method,
