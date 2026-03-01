@@ -171,7 +171,7 @@ const CATEGORY_DEFS = [
   {
     slug: "bakery-breads", name: "Bakery & Breads",
     description: "Freshly baked every morning",
-    image: "https://images.unsplash.com/photo-1549931319-a545dcf3bc7c?w=400",
+    image: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400",
     sortOrder: 3,
     subs: [
       { slug: "breads",           name: "Breads",             sortOrder: 1 },
@@ -305,7 +305,7 @@ const PRODUCTS_DEF: ProductDef[] = [
     name: "Country Tomatoes",
     description: "Vine-ripened desi tomatoes with deep colour and tangy flavour. Essential for every Indian kitchen.",
     catSlug: "fruits-vegetables", subSlug: "fresh-vegetables",
-    images: ["https://images.unsplash.com/photo-1546470427-e26264be0b11?w=600"],
+    images: ["https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600"],
     variants: [
       { size: "500", unit: "g",  mrp: 35,   sellingPrice: 30 },
       { size: "1",   unit: "kg", mrp: 65,   sellingPrice: 55 },
@@ -376,7 +376,7 @@ const PRODUCTS_DEF: ProductDef[] = [
     description: "Certified organic full cream milk from grass-fed desi cows. Richer taste, naturally A2 protein.",
     allergyInfo: "Contains milk and milk products.",
     catSlug: "dairy-eggs", subSlug: "milk",
-    images: ["https://images.unsplash.com/photo-1517093702194-2a75bb64b57d?w=600"],
+    images: ["https://images.unsplash.com/photo-1563636619-e9143da7973b?w=600"],
     variants: [
       { size: "500",  unit: "ml", mrp: 45,   sellingPrice: 42 },
       { size: "1000", unit: "ml", mrp: 85,   sellingPrice: 79 },
@@ -422,7 +422,7 @@ const PRODUCTS_DEF: ProductDef[] = [
     description: "Set dahi made from organic full-fat milk. Thick, creamy, with a pleasant tang — just like homemade.",
     allergyInfo: "Contains milk and milk products.",
     catSlug: "dairy-eggs", subSlug: "curd-buttermilk",
-    images: ["https://images.unsplash.com/photo-1571212515416-fca988b73a36?w=600"],
+    images: ["https://images.unsplash.com/photo-1488477181946-6428a0291777?w=600"],
     variants: [
       { size: "400", unit: "g",  mrp: 75,   sellingPrice: 65 },
       { size: "1",   unit: "kg", mrp: 175,  sellingPrice: 155 },
@@ -544,7 +544,7 @@ const PRODUCTS_DEF: ProductDef[] = [
     description: "Buttery, flaky croissants filled with rich dark chocolate. Freshly baked daily.",
     allergyInfo: "Contains wheat, gluten, milk, eggs, and soy lecithin.",
     catSlug: "bakery-breads", subSlug: "cakes-pastries",
-    images: ["https://images.unsplash.com/photo-1549931319-a545dcf3bc7c?w=600"],
+    images: ["https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=600"],
     variants: [
       { size: "2",   unit: "pc", mrp: 180,  sellingPrice: 155 },
       { size: "4",   unit: "pc", mrp: 349,  sellingPrice: 299 },
@@ -558,7 +558,7 @@ const PRODUCTS_DEF: ProductDef[] = [
     description: "Moist banana muffins loaded with crunchy walnuts. A wholesome snack baked fresh every morning.",
     allergyInfo: "Contains wheat, eggs, milk, and tree nuts (walnuts).",
     catSlug: "bakery-breads", subSlug: "cakes-pastries",
-    images: ["https://images.unsplash.com/photo-1604882737273-3b0c9765b7d5?w=600"],
+    images: ["https://images.unsplash.com/photo-1607958996333-41aef7caefaa?w=600"],
     variants: [
       { size: "2",   unit: "pc", mrp: 90,   sellingPrice: 79 },
       { size: "4",   unit: "pc", mrp: 175,  sellingPrice: 149 },
@@ -635,7 +635,7 @@ const PRODUCTS_DEF: ProductDef[] = [
     ingredients: "Mixed Fruit Juice Concentrate (Mango, Guava, Pineapple, Orange), Water, Sugar, Citric Acid",
     allergyInfo: "No common allergens.",
     catSlug: "beverages", subSlug: "juices",
-    images: ["https://images.unsplash.com/photo-1581375321224-79da6fd32442?w=600"],
+    images: ["https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=600"],
     variants: [
       { size: "200",  unit: "ml", mrp: 35,   sellingPrice: 30 },
       { size: "1000", unit: "ml", mrp: 120,  sellingPrice: 105 },
@@ -822,7 +822,7 @@ const PRODUCTS_DEF: ProductDef[] = [
     ingredients: "100% Dry Roasted Peanuts",
     allergyInfo: "Contains peanuts. Processed in a facility handling tree nuts.",
     catSlug: "snacks-branded", subSlug: "ready-to-eat",
-    images: ["https://images.unsplash.com/photo-1501012980720-b5e79f1a9e98?w=600"],
+    images: ["https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600"],
     variants: [
       { size: "200", unit: "g",  mrp: 179,  sellingPrice: 155 },
       { size: "400", unit: "g",  mrp: 329,  sellingPrice: 285 },
@@ -881,7 +881,7 @@ const PRODUCTS_DEF: ProductDef[] = [
     description: "Fresh minced chicken keema, freshly ground. Ideal for keema pav, stuffed parathas, and pasta.",
     additionalInfo: "Freshly ground daily. Store below 4°C and use within 24 hours.",
     catSlug: "meat-seafood", subSlug: "chicken",
-    images: ["https://images.unsplash.com/photo-1544025162-d76538829db0?w=600"],
+    images: ["https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=600"],
     variants: [
       { size: "250", unit: "g",  mrp: 139,  sellingPrice: 119 },
       { size: "500", unit: "g",  mrp: 265,  sellingPrice: 235 },
