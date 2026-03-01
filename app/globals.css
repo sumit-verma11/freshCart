@@ -150,11 +150,30 @@
     100% { opacity: 0; transform: translateY(-8px); }
   }
 
-  .animate-fade-in-up   { animation: fadeInUp 0.55s ease-out both; }
-  .animate-fade-in      { animation: fadeIn   0.35s ease-out both; }
-  .animate-slide-down   { animation: slideDown 0.2s ease-out both; }
-  .animate-slide-up     { animation: slideUp   0.3s ease-out both; }
-  .animate-text-swap    { animation: textSwap  3s ease-in-out both; }
+  @keyframes circleDraw {
+    from { stroke-dashoffset: 160; }
+    to   { stroke-dashoffset: 0; }
+  }
+  @keyframes checkDraw {
+    from { stroke-dashoffset: 60; }
+    to   { stroke-dashoffset: 0; }
+  }
+
+  .animate-fade-in-up   { animation: fadeInUp    0.55s ease-out both; }
+  .animate-fade-in      { animation: fadeIn       0.35s ease-out both; }
+  .animate-slide-down   { animation: slideDown    0.2s  ease-out both; }
+  .animate-slide-up     { animation: slideUp      0.3s  ease-out both; }
+  .animate-text-swap    { animation: textSwap     3s    ease-in-out both; }
+  .animate-circle-draw  {
+    stroke-dasharray: 160;
+    stroke-dashoffset: 160;
+    animation: circleDraw 0.5s ease-out 0.1s forwards;
+  }
+  .animate-check-draw   {
+    stroke-dasharray: 60;
+    stroke-dashoffset: 60;
+    animation: checkDraw 0.4s ease-out 0.55s forwards;
+  }
 
   .delay-100 { animation-delay: 0.10s; }
   .delay-200 { animation-delay: 0.20s; }
