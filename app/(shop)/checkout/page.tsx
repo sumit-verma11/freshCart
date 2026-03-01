@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
+import { trackCheckoutStarted, trackOrderPlaced } from "@/lib/analytics";
 import toast from "react-hot-toast";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -356,6 +357,7 @@ export default function CheckoutPage() {
         })),
       });
 
+      trackOrderPlaced(data.data.orderNumber, data.data.grandTotal, data.data.items.length);
       clearCart();
       toast.success("Order placed successfully! 🎉");
       setStep("confirmation");
@@ -681,7 +683,7 @@ export default function CheckoutPage() {
                   <ArrowLeft className="w-4 h-4" /> Back
                 </button>
                 <button
-                  onClick={() => setStep("payment")}
+                  onClick={() => { trackCheckoutStarted(tot, items.length); setStep("payment"); }}
                   className="btn-primary flex items-center gap-2 flex-1 justify-center"
                 >
                   Continue to Payment <ArrowRight className="w-4 h-4" />

@@ -2,10 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingCart, Leaf, Star, Minus, Plus } from "lucide-react";
+import { ShoppingCart, Leaf, Star, Minus, Plus, Heart, Flame, Sparkles } from "lucide-react";
 import { ICategory, IProduct } from "@/types";
 import { formatPrice, calculateDiscount } from "@/lib/utils";
 import { useCartStore } from "@/store/cart";
+import { useWishlistStore } from "@/store/wishlist";
+import { trackAddToCart, trackWishlistAdd, trackWishlistRemove } from "@/lib/analytics";
 import toast from "react-hot-toast";
 
 interface ProductCardProps {
@@ -14,12 +16,14 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const { items, addItem, updateQuantity } = useCartStore();
+  const { toggle, has } = useWishlistStore();
+
   const v = product.variants[0];
   const discount = v ? calculateDiscount(v.mrp, v.sellingPrice) : 0;
   const isOutOfStock = !product.isAvailable || product.stockQty === 0;
   const effectivePrice = v?.sellingPrice ?? 0;
+  const isWishlisted = has(product._id.toString());
 
-  // Check if this product+variant is already in cart
   const cartItem = items.find(
     (i) => i.productId === product._id.toString() && i.variantSku === v?.sku
   );
@@ -47,13 +51,36 @@ export default function ProductCard({ product }: ProductCardProps) {
       quantity: 1,
       stock: product.stockQty,
     });
-    if (qty === 0) toast.success(`${product.name} added to cart`);
+    if (qty === 0) {
+      toast.success(`${product.name} added to cart`);
+      trackAddToCart(product._id.toString(), product.name, v.sellingPrice, 1);
+    }
   }
 
   function handleDecrement(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
     updateQuantity(product._id.toString(), qty - 1);
+  }
+
+  function handleWishlist(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    toggle({
+      productId: product._id.toString(),
+      name: product.name,
+      image: product.images[0] ?? "/placeholder.png",
+      slug: product.slug,
+      price: effectivePrice,
+      mrp: v?.mrp ?? effectivePrice,
+    });
+    if (isWishlisted) {
+      toast("Removed from wishlist");
+      trackWishlistRemove(product._id.toString(), product.name);
+    } else {
+      toast.success("Added to wishlist");
+      trackWishlistAdd(product._id.toString(), product.name);
+    }
   }
 
   return (
@@ -73,24 +100,40 @@ export default function ProductCard({ product }: ProductCardProps) {
             <div className="w-full h-full flex items-center justify-center text-5xl">🛒</div>
           )}
 
-          {/* Availability dot */}
-          <div className="absolute top-2 right-2">
-            <span
-              className={`w-2.5 h-2.5 rounded-full block border-2 border-white shadow-sm
-                          ${isOutOfStock ? "bg-danger" : "bg-success"}`}
-              title={isOutOfStock ? "Out of Stock" : "In Stock"}
-            />
-          </div>
+          {/* Wishlist heart */}
+          <button
+            onClick={handleWishlist}
+            className={`absolute top-2 right-2 w-7 h-7 rounded-full flex items-center
+                        justify-center shadow transition-all duration-150 active:scale-90
+                        ${isWishlisted
+                          ? "bg-red-500 text-white"
+                          : "bg-white/90 text-muted hover:text-red-500"}`}
+            aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+          >
+            <Heart className={`w-3.5 h-3.5 ${isWishlisted ? "fill-white" : ""}`} />
+          </button>
 
-          {/* Badges */}
+          {/* Badges (top-left) */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             {product.isOrganic && (
               <span className="badge-organic flex items-center gap-1">
                 <Leaf className="w-3 h-3" /> Organic
               </span>
             )}
-            {discount > 0 && (
-              <span className="badge-sale">{discount}% OFF</span>
+            {product.isNewArrival && (
+              <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5
+                               rounded-full bg-blue-500 text-white">
+                <Sparkles className="w-3 h-3" /> New
+              </span>
+            )}
+            {product.isBestseller && (
+              <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5
+                               rounded-full bg-orange-500 text-white">
+                <Flame className="w-3 h-3" /> Hot
+              </span>
+            )}
+            {(product.isSale || discount > 0) && (
+              <span className="badge-sale">{discount > 0 ? `${discount}% OFF` : "SALE"}</span>
             )}
           </div>
 

@@ -7,9 +7,10 @@ import { useSession, signOut } from "next-auth/react";
 import {
   ShoppingCart, User, Search, Menu, X, Leaf, ChevronDown,
   MapPin, Loader2, CheckCircle2, AlertCircle, LayoutDashboard,
-  Package, LogOut,
+  Package, LogOut, Heart,
 } from "lucide-react";
 import { useCartStore } from "@/store/cart";
+import { useWishlistStore } from "@/store/wishlist";
 import { usePincodeStore } from "@/store/pincode";
 import { IProduct } from "@/types";
 import { formatPrice } from "@/lib/utils";
@@ -50,7 +51,8 @@ function Highlight({ text, query }: { text: string; query: string }) {
 
 export default function Navbar() {
   const { data: session } = useSession();
-  const cartCount  = useCartStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
+  const cartCount     = useCartStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
+  const wishlistCount = useWishlistStore((s) => s.items.length);
   const { info: pincodeInfo, setPincode, clearPincode } = usePincodeStore();
 
   // ── Mobile menu ──────────────────────────────────────────────────────────
@@ -295,6 +297,18 @@ export default function Navbar() {
 
             {/* Right actions */}
             <div className="flex items-center gap-1 ml-auto md:ml-0">
+
+              {/* Wishlist */}
+              <Link href="/wishlist" className="relative btn-ghost p-2 hidden sm:flex">
+                <Heart className="w-5 h-5" />
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[9px]
+                                   font-bold w-4 h-4 rounded-full flex items-center justify-center
+                                   leading-none">
+                    {wishlistCount > 9 ? "9+" : wishlistCount}
+                  </span>
+                )}
+              </Link>
 
               {/* Cart */}
               <Link href="/cart" className="relative flex items-center gap-2 btn-ghost">

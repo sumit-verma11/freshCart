@@ -1,11 +1,12 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Leaf, Star, ChevronRight, Truck, RotateCcw, Shield } from "lucide-react";
+import { Leaf, Star, ChevronRight, Truck, RotateCcw, Shield, Flame, Sparkles } from "lucide-react";
 import { connectDB } from "@/lib/mongoose";
 import Product from "@/models/Product";
 import ProductCard from "@/components/ProductCard";
 import AddToCartButton from "@/components/AddToCartButton";
+import ProductViewTracker from "@/components/ProductViewTracker";
 import { formatPrice, calculateDiscount } from "@/lib/utils";
 import { ICategory, IProduct } from "@/types";
 
@@ -58,6 +59,11 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <ProductViewTracker
+        productId={product._id.toString()}
+        productName={product.name}
+        category={categoryName}
+      />
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-muted mb-8">
         <Link href="/" className="hover:text-primary">Home</Link>
@@ -135,11 +141,23 @@ export default async function ProductPage({ params }: Props) {
             )}
           </div>
 
-          {/* Tags */}
+          {/* Tags / badges */}
           <div className="flex flex-wrap gap-2 mb-6">
             {product.isOrganic && (
               <span className="badge-organic flex items-center gap-1">
                 <Leaf className="w-3 h-3" /> Organic
+              </span>
+            )}
+            {product.isNewArrival && (
+              <span className="flex items-center gap-1 text-xs font-bold px-3 py-1
+                               rounded-full bg-blue-500 text-white">
+                <Sparkles className="w-3 h-3" /> New Arrival
+              </span>
+            )}
+            {product.isBestseller && (
+              <span className="flex items-center gap-1 text-xs font-bold px-3 py-1
+                               rounded-full bg-orange-500 text-white">
+                <Flame className="w-3 h-3" /> Bestseller
               </span>
             )}
             {product.tags.map((tag) => (

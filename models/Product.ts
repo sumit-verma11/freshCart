@@ -124,9 +124,12 @@ const ProductSchema = new Schema<IProductDocument>(
     serviceablePincodes: { type: [String], default: [] },  // index below
 
     // ── Discovery
-    tags:       { type: [String], default: [] },
-    isFeatured: { type: Boolean, default: false },
-    isOrganic:  { type: Boolean, default: false },
+    tags:         { type: [String], default: [] },
+    isFeatured:   { type: Boolean, default: false },
+    isOrganic:    { type: Boolean, default: false },
+    isBestseller:  { type: Boolean, default: false },
+    isNewArrival:  { type: Boolean, default: false },
+    isSale:        { type: Boolean, default: false },
 
     // ── Nutrition
     nutritionFacts: { type: NutritionFactsSchema, default: undefined },

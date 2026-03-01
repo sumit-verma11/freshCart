@@ -139,6 +139,9 @@ export interface IProduct {
   tags: string[];
   isFeatured: boolean;
   isOrganic: boolean;
+  isBestseller: boolean;
+  isNewArrival: boolean;
+  isSale: boolean;
 
   // Nutrition (optional — packaged goods only)
   nutritionFacts?: INutritionFacts;
