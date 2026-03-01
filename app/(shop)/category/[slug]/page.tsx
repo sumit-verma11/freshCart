@@ -1,18 +1,10 @@
 import { connectDB } from "@/lib/mongoose";
 import Product from "@/models/Product";
+import Category from "@/models/Category";
 import ProductCard from "@/components/ProductCard";
 import CategoryFilters from "@/components/CategoryFilters";
 import { IProduct } from "@/types";
 import { notFound } from "next/navigation";
-
-const VALID_CATEGORIES = [
-  "Fruits & Vegetables",
-  "Dairy & Eggs",
-  "Bakery",
-  "Beverages",
-  "Snacks",
-  "Meat & Seafood",
-];
 
 interface Props {
   params: { slug: string };
@@ -20,32 +12,36 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props) {
-  const category = decodeURIComponent(params.slug);
-  return { title: category };
+  await connectDB();
+  const cat = await Category.findOne({ slug: params.slug, isActive: true }, "name").lean();
+  if (!cat) return { title: "Category Not Found" };
+  return { title: cat.name };
 }
 
 export default async function CategoryPage({ params, searchParams }: Props) {
-  const category = decodeURIComponent(params.slug);
-  if (!VALID_CATEGORIES.includes(category)) notFound();
-
   await connectDB();
+
+  // Look up the category by slug to get the ObjectId for the product query
+  const cat = await Category.findOne({ slug: params.slug, isActive: true }).lean();
+  if (!cat) notFound();
 
   const sort = searchParams.sort || "default";
   const onlyOrganic = searchParams.organic === "true";
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const query: Record<string, any> = { category };
+  const query: Record<string, any> = { category: cat._id, isAvailable: true };
   if (onlyOrganic) query.isOrganic = true;
 
   type SortSpec = [string, 1 | -1][];
   const sortMap: Record<string, SortSpec> = {
-    price_asc: [["price", 1]],
-    price_desc: [["price", -1]],
-    rating: [["rating", -1]],
-    default: [["isFeatured", -1], ["createdAt", -1]],
+    price_asc:  [["variants.0.sellingPrice", 1]],
+    price_desc: [["variants.0.sellingPrice", -1]],
+    rating:     [["rating", -1]],
+    default:    [["isFeatured", -1], ["createdAt", -1]],
   };
 
   const products = await Product.find(query)
+    .populate("category", "name slug")
     .sort(sortMap[sort] || sortMap.default)
     .lean() as unknown as IProduct[];
 
@@ -54,11 +50,11 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="section-title">{category}</h1>
+          <h1 className="section-title">{cat.name}</h1>
           <p className="text-muted text-sm mt-1">{products.length} products</p>
         </div>
 
-        <CategoryFilters sort={sort} onlyOrganic={onlyOrganic} category={category} />
+        <CategoryFilters sort={sort} onlyOrganic={onlyOrganic} category={cat.slug} />
       </div>
 
       {products.length === 0 ? (

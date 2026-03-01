@@ -37,8 +37,14 @@ export async function GET(req: NextRequest) {
     if (organic === "true") query.isOrganic = true;
     if (maxPrice)    query["variants.sellingPrice"] = { $lte: Number(maxPrice) };
 
-    const allowedSortFields = ["sellingPrice", "createdAt", "name", "stockQty"];
-    const sortField = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
+    // Map sort field names — sellingPrice lives inside variants[], not at root
+    const sortFieldMap: Record<string, string> = {
+      sellingPrice: "variants.0.sellingPrice",
+      createdAt:    "createdAt",
+      name:         "name",
+      stockQty:     "stockQty",
+    };
+    const sortField = sortFieldMap[sortBy] ?? "createdAt";
 
     const [products, total] = await Promise.all([
       Product.find(query)
