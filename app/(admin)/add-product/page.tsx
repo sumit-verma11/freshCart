@@ -1,28 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { PlusCircle, Upload, X, Leaf } from "lucide-react";
 import toast from "react-hot-toast";
-import { ProductCategory } from "@/types";
 
-const CATEGORIES: ProductCategory[] = [
-  "Fruits & Vegetables",
-  "Dairy & Eggs",
-  "Bakery",
-  "Beverages",
-  "Snacks",
-  "Meat & Seafood",
-];
+interface Category {
+  _id: string;
+  name: string;
+}
 
 interface FormData {
   name: string;
   description: string;
-  category: ProductCategory | "";
-  price: string;
-  salePrice: string;
+  category: string;
+  mrp: string;
+  sellingPrice: string;
+  size: string;
   unit: string;
-  stock: string;
+  stockQty: string;
   images: string[];
   tags: string;
   isOrganic: boolean;
@@ -32,8 +28,8 @@ interface FormData {
 
 const INITIAL: FormData = {
   name: "", description: "", category: "",
-  price: "", salePrice: "", unit: "",
-  stock: "0", images: [], tags: "",
+  mrp: "", sellingPrice: "", size: "", unit: "",
+  stockQty: "0", images: [], tags: "",
   isOrganic: false, isFeatured: false,
   serviceablePincodes: "",
 };
@@ -43,6 +39,14 @@ export default function AddProductPage() {
   const [form, setForm] = useState<FormData>(INITIAL);
   const [imageUrl, setImageUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    fetch("/api/admin/categories")
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setCategories(d.data); })
+      .catch(() => toast.error("Failed to load categories"));
+  }, []);
 
   function addImage() {
     if (!imageUrl.trim()) return;
@@ -70,10 +74,11 @@ export default function AddProductPage() {
           name: form.name,
           description: form.description,
           category: form.category,
-          price: parseFloat(form.price),
-          salePrice: form.salePrice ? parseFloat(form.salePrice) : undefined,
+          mrp: parseFloat(form.mrp),
+          sellingPrice: form.sellingPrice ? parseFloat(form.sellingPrice) : undefined,
+          size: form.size,
           unit: form.unit,
-          stock: parseInt(form.stock) || 0,
+          stockQty: parseInt(form.stockQty) || 0,
           images: form.images,
           tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
           isOrganic: form.isOrganic,
@@ -137,11 +142,11 @@ export default function AddProductPage() {
                 required
                 className="input"
                 value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value as ProductCategory })}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
               >
                 <option value="">Select category</option>
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                {categories.map((c) => (
+                  <option key={c._id} value={c._id}>{c.name}</option>
                 ))}
               </select>
             </div>
@@ -150,11 +155,23 @@ export default function AddProductPage() {
               <input
                 required
                 className="input"
-                placeholder="e.g. 500g, 1L, 6 pcs"
+                placeholder="e.g. g, kg, L, ml, pcs"
                 value={form.unit}
                 onChange={(e) => setForm({ ...form, unit: e.target.value })}
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-dark mb-1.5">Size *</label>
+            <input
+              required
+              className="input"
+              placeholder="e.g. 500, 1, 250"
+              value={form.size}
+              onChange={(e) => setForm({ ...form, size: e.target.value })}
+            />
+            <p className="text-xs text-muted mt-1">The numeric size value (unit entered separately above)</p>
           </div>
         </div>
 
@@ -168,21 +185,23 @@ export default function AddProductPage() {
                 required
                 type="number"
                 min="0"
+                step="0.01"
                 className="input"
                 placeholder="299"
-                value={form.price}
-                onChange={(e) => setForm({ ...form, price: e.target.value })}
+                value={form.mrp}
+                onChange={(e) => setForm({ ...form, mrp: e.target.value })}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-dark mb-1.5">Sale Price (₹)</label>
+              <label className="block text-sm font-medium text-dark mb-1.5">Selling Price (₹)</label>
               <input
                 type="number"
                 min="0"
+                step="0.01"
                 className="input"
                 placeholder="249 (optional)"
-                value={form.salePrice}
-                onChange={(e) => setForm({ ...form, salePrice: e.target.value })}
+                value={form.sellingPrice}
+                onChange={(e) => setForm({ ...form, sellingPrice: e.target.value })}
               />
             </div>
             <div>
@@ -193,8 +212,8 @@ export default function AddProductPage() {
                 min="0"
                 className="input"
                 placeholder="100"
-                value={form.stock}
-                onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                value={form.stockQty}
+                onChange={(e) => setForm({ ...form, stockQty: e.target.value })}
               />
             </div>
           </div>
