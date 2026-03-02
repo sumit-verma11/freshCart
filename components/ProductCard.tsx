@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingCart, Leaf, Star, Minus, Plus, Heart, Flame, Sparkles, RotateCcw, Zap } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ShoppingCart, Leaf, Star, Minus, Plus, Heart, Flame, Sparkles, RotateCcw, Zap, AlertTriangle } from "lucide-react";
 import { ICategory, IProduct } from "@/types";
 import { formatPrice, calculateDiscount } from "@/lib/utils";
 import { useCartStore } from "@/store/cart";
@@ -12,6 +13,16 @@ import { useUserActivity } from "@/store/userActivity";
 import { trackAddToCart, trackWishlistAdd, trackWishlistRemove } from "@/lib/analytics";
 import toast from "react-hot-toast";
 import { haptic } from "@/lib/haptics";
+import Tooltip from "@/components/Tooltip";
+
+// Compute a simple Nutri-score (A–E) from calories per 100g
+function getNutriScore(calories: number): { grade: string; color: string; bg: string } {
+  if (calories < 80)  return { grade: "A", color: "text-green-700",  bg: "bg-green-100" };
+  if (calories < 160) return { grade: "B", color: "text-lime-700",   bg: "bg-lime-100"  };
+  if (calories < 240) return { grade: "C", color: "text-yellow-700", bg: "bg-yellow-100" };
+  if (calories < 350) return { grade: "D", color: "text-orange-700", bg: "bg-orange-100" };
+  return               { grade: "E", color: "text-red-700",    bg: "bg-red-100"   };
+}
 
 interface ProductCardProps {
   product: IProduct;
@@ -123,7 +134,11 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link href={`/products/${product.slug}`} className="block group">
-      <div className="card-hover overflow-hidden h-full flex flex-col">
+      <motion.div
+        className={`card-hover overflow-hidden h-full flex flex-col${flashActive ? " ring-2 ring-red-500 animate-glow" : ""}`}
+        whileHover={{ y: -6, boxShadow: "0 20px 40px rgba(0,0,0,0.15)" }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      >
         {/* Image */}
         <div className="relative aspect-square bg-accent overflow-hidden">
           {product.images[0] ? (
@@ -140,17 +155,18 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
 
           {/* Wishlist heart */}
-          <button
+          <motion.button
             onClick={handleWishlist}
+            whileTap={{ scale: 0.8 }}
             className={`absolute top-2 right-2 w-7 h-7 rounded-full flex items-center
-                        justify-center shadow transition-all duration-150 active:scale-90
+                        justify-center shadow transition-all duration-150
                         ${isWishlisted
                           ? "bg-red-500 text-white"
                           : "bg-white/90 text-muted hover:text-red-500"}`}
             aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
           >
             <Heart className={`w-3.5 h-3.5 ${isWishlisted ? "fill-white" : ""}`} />
-          </button>
+          </motion.button>
 
           {/* Badges (top-left) */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -209,14 +225,69 @@ export default function ProductCard({ product }: ProductCardProps) {
             {v && <p className="text-xs text-muted mt-0.5">{v.size}{v.unit}</p>}
           </div>
 
-          {/* Rating */}
-          {product.reviewCount > 0 && (
-            <div className="flex items-center gap-1">
-              <Star className="w-3.5 h-3.5 fill-secondary text-secondary" />
-              <span className="text-xs font-semibold text-dark">{product.rating.toFixed(1)}</span>
-              <span className="text-xs text-muted">({product.reviewCount})</span>
-            </div>
-          )}
+          {/* Rating + info badges row */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {product.reviewCount > 0 && (
+              <div className="flex items-center gap-1">
+                <Star className="w-3.5 h-3.5 fill-secondary text-secondary" />
+                <span className="text-xs font-semibold text-dark dark:text-white">{product.rating.toFixed(1)}</span>
+                <span className="text-xs text-muted">({product.reviewCount})</span>
+              </div>
+            )}
+
+            {/* Allergen warning tooltip */}
+            {product.allergyInfo && (
+              <Tooltip
+                content={<><span className="font-semibold block mb-0.5">Allergen Info</span>{product.allergyInfo}</>}
+                side="top"
+                maxWidth={200}
+              >
+                <span
+                  className="inline-flex items-center gap-0.5 text-[10px] font-semibold
+                             px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700
+                             cursor-default"
+                  aria-label={`Allergen information: ${product.allergyInfo}`}
+                >
+                  <AlertTriangle className="w-2.5 h-2.5" />
+                  Allergen
+                </span>
+              </Tooltip>
+            )}
+
+            {/* Nutri-score tooltip */}
+            {product.nutritionFacts?.calories != null && (
+              (() => {
+                const ns = getNutriScore(product.nutritionFacts.calories as number);
+                return (
+                  <Tooltip
+                    content={
+                      <>
+                        <span className="font-semibold block mb-1">Nutri-Score {ns.grade}</span>
+                        <span className="block">{product.nutritionFacts!.calories} kcal / 100g</span>
+                        {product.nutritionFacts!.protein != null && (
+                          <span className="block text-gray-300">Protein: {product.nutritionFacts!.protein}g</span>
+                        )}
+                        {product.nutritionFacts!.fat != null && (
+                          <span className="block text-gray-300">Fat: {product.nutritionFacts!.fat}g</span>
+                        )}
+                      </>
+                    }
+                    side="top"
+                    maxWidth={180}
+                  >
+                    <span
+                      className={`inline-flex items-center text-[10px] font-bold
+                                 px-1.5 py-0.5 rounded-full cursor-default
+                                 ${ns.bg} ${ns.color}`}
+                      aria-label={`Nutri-score grade ${ns.grade}`}
+                    >
+                      {ns.grade}
+                    </span>
+                  </Tooltip>
+                );
+              })()
+            )}
+          </div>
 
           {/* Price + cart controls */}
           <div className="flex items-center justify-between mt-auto pt-1 gap-2">
@@ -235,50 +306,62 @@ export default function ProductCard({ product }: ProductCardProps) {
               )}
             </div>
 
-            {/* Cart button or qty controls */}
-            {qty > 0 ? (
-              <div
-                className="flex items-center border-2 border-primary rounded-xl overflow-hidden shrink-0"
-                onClick={(e) => e.preventDefault()}
-              >
-                <button
-                  onClick={handleDecrement}
-                  className="w-7 h-7 flex items-center justify-center text-primary
-                             hover:bg-accent active:bg-accent/80 transition-colors"
-                  aria-label="Decrease quantity"
+            {/* Cart button or qty controls — AnimatePresence morph */}
+            <AnimatePresence mode="wait" initial={false}>
+              {qty > 0 ? (
+                <motion.div
+                  key="qty"
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.8, opacity: 0 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  className="flex items-center border-2 border-primary rounded-xl overflow-hidden shrink-0"
+                  onClick={(e) => e.preventDefault()}
                 >
-                  <Minus className="w-3.5 h-3.5" />
-                </button>
-                <span className="w-7 text-center text-sm font-bold text-dark leading-none">
-                  {qty}
-                </span>
-                <button
+                  <button
+                    onClick={handleDecrement}
+                    className="w-7 h-7 flex items-center justify-center text-primary
+                               hover:bg-accent active:bg-accent/80 transition-colors"
+                    aria-label="Decrease quantity"
+                  >
+                    <Minus className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="w-7 text-center text-sm font-bold text-dark leading-none">
+                    {qty}
+                  </span>
+                  <button
+                    onClick={handleAdd}
+                    disabled={qty >= product.stockQty}
+                    className="w-7 h-7 flex items-center justify-center text-primary
+                               hover:bg-accent active:bg-accent/80 transition-colors
+                               disabled:opacity-40 disabled:cursor-not-allowed"
+                    aria-label="Increase quantity"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.button
+                  key="add"
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.8, opacity: 0 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  whileTap={{ scale: 0.85 }}
                   onClick={handleAdd}
-                  disabled={qty >= product.stockQty}
-                  className="w-7 h-7 flex items-center justify-center text-primary
-                             hover:bg-accent active:bg-accent/80 transition-colors
-                             disabled:opacity-40 disabled:cursor-not-allowed"
-                  aria-label="Increase quantity"
+                  disabled={isOutOfStock}
+                  className="bg-primary text-white w-8 h-8 rounded-xl flex items-center
+                             justify-center hover:bg-primary-600 transition-all duration-150
+                             disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                  aria-label="Add to cart"
                 >
-                  <Plus className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={handleAdd}
-                disabled={isOutOfStock}
-                className="bg-primary text-white w-8 h-8 rounded-xl flex items-center
-                           justify-center hover:bg-primary-600 active:scale-95
-                           transition-all duration-150 disabled:opacity-40
-                           disabled:cursor-not-allowed shrink-0"
-                aria-label="Add to cart"
-              >
-                <ShoppingCart className="w-4 h-4" />
-              </button>
-            )}
+                  <ShoppingCart className="w-4 h-4" />
+                </motion.button>
+              )}
+            </AnimatePresence>
           </div>
         </div>
-      </div>
+      </motion.div>
     </Link>
   );
 }

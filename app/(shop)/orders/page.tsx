@@ -5,8 +5,10 @@ import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import confetti from "canvas-confetti";
 import {
-  Package, CheckCircle, Clock, Truck, XCircle, ShoppingBag,
+  CheckCircle, Clock, Truck, XCircle, ShoppingBag,
   ChevronDown, ChevronUp, MapPin, Loader2,
 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
@@ -208,7 +210,7 @@ function OrderDetail({ orderId }: { orderId: string }) {
           ) : (
             <p className="text-sm text-muted">Assigning partner…</p>
           )}
-          <div className="bg-gray-100 rounded-xl h-44 flex flex-col items-center justify-center gap-2">
+          <div className="bg-gray-100 dark:bg-gray-800 rounded-xl h-44 flex flex-col items-center justify-center gap-2">
             <span className="text-3xl">🗺️</span>
             <span className="text-sm text-muted">Live map tracking</span>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
@@ -248,7 +250,7 @@ function OrderDetail({ orderId }: { orderId: string }) {
       </div>
 
       {/* Delivery address */}
-      <div className="bg-white rounded-xl p-4 border border-border">
+      <div className="bg-surface rounded-xl p-4 border border-border">
         <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-2
                       flex items-center gap-1.5">
           <MapPin className="w-3.5 h-3.5" /> Delivery Address
@@ -306,6 +308,17 @@ function OrdersContent() {
     if (status === "unauthenticated") router.push("/login");
   }, [status, router]);
 
+  // Confetti on new order success
+  useEffect(() => {
+    if (!successNum) return;
+    const fire = () => {
+      confetti({ particleCount: 80, spread: 60, origin: { y: 0.5, x: 0.3 }, colors: ["#1A6B3A", "#F5A623", "#22c55e", "#fff"] });
+      confetti({ particleCount: 80, spread: 60, origin: { y: 0.5, x: 0.7 }, colors: ["#1A6B3A", "#F5A623", "#22c55e", "#fff"] });
+    };
+    const t = setTimeout(fire, 200);
+    return () => clearTimeout(t);
+  }, [successNum]);
+
   const fetchOrders = useCallback(async () => {
     if (!session) return;
     setLoading(true);
@@ -352,12 +365,56 @@ function OrdersContent() {
       {successNum && <PushPermissionPrompt />}
 
       {orders.length === 0 ? (
-        <div className="text-center py-20">
-          <div className="w-24 h-24 bg-accent rounded-full flex items-center justify-center mx-auto mb-5">
-            <Package className="w-10 h-10 text-primary" />
-          </div>
-          <p className="text-lg font-bold text-dark mb-2">No orders yet</p>
-          <p className="text-muted mb-6 text-sm">Your order history will show up here.</p>
+        <div className="text-center py-16 flex flex-col items-center">
+          {/* Animated delivery scooter SVG */}
+          <motion.div
+            animate={{ x: [0, 8, -4, 8, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
+            className="mb-6"
+          >
+            <svg viewBox="0 0 160 100" fill="none" className="w-44 h-28" aria-hidden="true">
+              {/* Road shadow */}
+              <ellipse cx="80" cy="96" rx="55" ry="5" fill="#E8F5E9" />
+              {/* Scooter body */}
+              <path d="M50 65 Q50 40 70 38 L110 38 Q120 38 125 48 L130 65 Z" fill="#1A6B3A" />
+              {/* Seat */}
+              <rect x="72" y="30" width="36" height="10" rx="5" fill="#0E4520" />
+              {/* Handlebar post */}
+              <rect x="112" y="32" width="5" height="18" rx="2" fill="#0E4520" />
+              {/* Handlebar */}
+              <path d="M109 34 Q115 30 122 34" stroke="#0E4520" strokeWidth="3" strokeLinecap="round" fill="none" />
+              {/* Basket/front fairing */}
+              <path d="M118 48 L135 55 L130 65 L118 65 Z" fill="#166330" />
+              {/* Front windshield glare */}
+              <path d="M122 50 L130 55" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity="0.5" />
+              {/* Delivery box */}
+              <rect x="54" y="38" width="30" height="26" rx="4" fill="#F5A623" />
+              <rect x="64" y="38" width="10" height="4" rx="2" fill="#CC7A07" />
+              {/* Box logo leaf */}
+              <path d="M62 53 Q66 46 73 49 Q67 54 62 53z" fill="#1A6B3A" opacity="0.9" />
+              {/* Rear wheel */}
+              <circle cx="58" cy="72" r="14" fill="white" stroke="#1A6B3A" strokeWidth="3" />
+              <circle cx="58" cy="72" r="8" fill="#E8F5E9" stroke="#1A6B3A" strokeWidth="2" />
+              <circle cx="58" cy="72" r="3" fill="#1A6B3A" />
+              {/* Front wheel */}
+              <circle cx="122" cy="72" r="14" fill="white" stroke="#1A6B3A" strokeWidth="3" />
+              <circle cx="122" cy="72" r="8" fill="#E8F5E9" stroke="#1A6B3A" strokeWidth="2" />
+              <circle cx="122" cy="72" r="3" fill="#1A6B3A" />
+              {/* Exhaust puffs */}
+              <motion.circle
+                cx="40" cy="65"
+                r="4"
+                fill="#D1FAE5"
+                opacity="0.7"
+                animate={{ cx: [40, 25, 10], opacity: [0.7, 0.4, 0], r: [4, 7, 10] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
+              />
+            </svg>
+          </motion.div>
+          <p className="text-lg font-bold text-dark dark:text-white mb-2">No orders yet</p>
+          <p className="text-muted dark:text-gray-400 mb-6 text-sm max-w-xs">
+            Your order history will show up here once you place your first order.
+          </p>
           <Link href="/" className="btn-primary">Start Shopping</Link>
         </div>
       ) : (

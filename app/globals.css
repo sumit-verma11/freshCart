@@ -6,31 +6,59 @@
 
 @layer base {
   :root {
-    --color-primary: #1A6B3A;
+    /* Brand colors */
+    --color-primary:   #1A6B3A;
     --color-secondary: #F5A623;
-    --color-accent: #E8F5E9;
-    --color-dark: #1C1C1E;
-    --color-muted: #6B7280;
-    --color-danger: #DC2626;
-    --color-success: #16A34A;
-    --color-border: #E5E7EB;
+    --color-accent:    #E8F5E9;
+    --color-dark:      #1C1C1E;
+    --color-muted:     #6B7280;
+    --color-danger:    #DC2626;
+    --color-success:   #16A34A;
+    --color-border:    #E5E7EB;
+    /* Surfaces */
+    --color-surface:   #FFFFFF;
+    --color-surface-2: #F9FAFB;
+    /* Glassmorphism */
+    --glass-bg:        rgba(255, 255, 255, 0.85);
+    --glass-border:    rgba(255, 255, 255, 0.3);
+    --glass-blur:      20px;
   }
 
-  * {
-    @apply border-border;
+  /* Dark mode overrides via CSS variables */
+  .dark {
+    --color-accent:    #052e16;
+    --color-dark:      #f9fafb;
+    --color-muted:     #9ca3af;
+    --color-border:    #1f2937;
+    --color-surface:   #111827;
+    --color-surface-2: #030712;
+    --glass-bg:        rgba(17, 24, 39, 0.85);
+    --glass-border:    rgba(255, 255, 255, 0.08);
   }
 
-  body {
-    @apply bg-gray-50 text-dark font-sans antialiased;
+  * { @apply border-border; }
+
+  body { @apply bg-gray-50 dark:bg-gray-950 text-dark font-sans antialiased; }
+
+  html { scroll-behavior: smooth; }
+
+  /* System dark mode fallback (before JS hydrates the class) */
+  @media (prefers-color-scheme: dark) {
+    html:not(.light) body {
+      background-color: #030712;
+      color: #f9fafb;
+    }
   }
 
-  html {
-    scroll-behavior: smooth;
+  :focus-visible {
+    outline: 2px solid #1A6B3A;
+    outline-offset: 2px;
+    border-radius: 4px;
   }
+  .dark :focus-visible { outline-color: #22c55e; }
 }
 
 @layer components {
-  /* Buttons */
   .btn-primary {
     @apply bg-primary text-white font-semibold px-6 py-3 rounded-xl
            hover:bg-primary-600 active:bg-primary-700
@@ -38,7 +66,6 @@
            focus:ring-2 focus:ring-primary/40 disabled:opacity-50
            disabled:cursor-not-allowed;
   }
-
   .btn-secondary {
     @apply bg-secondary text-white font-semibold px-6 py-3 rounded-xl
            hover:bg-secondary-500 active:bg-secondary-600
@@ -46,21 +73,19 @@
            focus:ring-2 focus:ring-secondary/40 disabled:opacity-50
            disabled:cursor-not-allowed;
   }
-
   .btn-outline {
     @apply border-2 border-primary text-primary font-semibold px-6 py-3
            rounded-xl hover:bg-primary hover:text-white transition-all
            duration-200 focus:outline-none focus:ring-2 focus:ring-primary/40;
   }
-
   .btn-ghost {
-    @apply text-dark font-medium px-4 py-2 rounded-lg
-           hover:bg-gray-100 transition-colors duration-150;
+    @apply text-dark dark:text-gray-200 font-medium px-4 py-2 rounded-lg
+           hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-150;
   }
 
-  /* Cards */
   .card {
-    @apply bg-surface rounded-2xl shadow-card border border-border;
+    @apply bg-white dark:bg-gray-900 rounded-2xl shadow-card
+           border border-border dark:border-gray-800;
   }
 
   .card-hover {
@@ -68,44 +93,43 @@
            transition-all duration-200 cursor-pointer;
   }
 
-  /* Inputs */
   .input {
-    @apply w-full border border-border rounded-xl px-4 py-3 text-dark
-           placeholder:text-muted bg-white focus:outline-none
+    @apply w-full border border-border dark:border-gray-700 rounded-xl px-4 py-3
+           text-dark dark:text-gray-100 placeholder:text-muted
+           bg-white dark:bg-gray-800 focus:outline-none
            focus:ring-2 focus:ring-primary/30 focus:border-primary
            transition-all duration-150;
   }
 
-  /* Badge */
-  .badge-organic {
-    @apply text-xs font-semibold bg-accent text-primary px-2 py-0.5 rounded-full;
+  .badge-organic { @apply text-xs font-semibold bg-accent dark:bg-green-900/50 text-primary dark:text-green-400 px-2 py-0.5 rounded-full; }
+  .badge-sale    { @apply text-xs font-bold bg-secondary text-white px-2 py-0.5 rounded-full; }
+  .badge-oos     { @apply text-xs font-semibold bg-red-100 dark:bg-red-900/40 text-danger dark:text-red-400 px-2 py-0.5 rounded-full; }
+
+  .section-title { @apply text-2xl md:text-3xl font-bold text-dark dark:text-white; }
+  .price-current { @apply text-lg font-bold text-primary; }
+  .price-original { @apply text-sm text-muted line-through; }
+
+  /* ── Shimmer skeleton ─────────────────────────────────────────────── */
+  .skeleton { border-radius: 0.5rem; }
+  .skeleton,
+  .skeleton-shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 800px 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    border-radius: 0.5rem;
+  }
+  .dark .skeleton,
+  .dark .skeleton-shimmer {
+    background: linear-gradient(90deg, #1e293b 25%, #263345 50%, #1e293b 75%);
+    background-size: 800px 100%;
   }
 
-  .badge-sale {
-    @apply text-xs font-bold bg-secondary text-white px-2 py-0.5 rounded-full;
-  }
-
-  .badge-oos {
-    @apply text-xs font-semibold bg-red-100 text-danger px-2 py-0.5 rounded-full;
-  }
-
-  /* Section headers */
-  .section-title {
-    @apply text-2xl md:text-3xl font-bold text-dark;
-  }
-
-  /* Price display */
-  .price-current {
-    @apply text-lg font-bold text-primary;
-  }
-
-  .price-original {
-    @apply text-sm text-muted line-through;
-  }
-
-  /* Skeleton loading */
-  .skeleton {
-    @apply bg-gray-200 animate-pulse rounded-lg;
+  /* ── Glass panel ──────────────────────────────────────────────────── */
+  .glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
   }
 }
 
@@ -113,20 +137,20 @@
   .text-gradient {
     @apply bg-gradient-to-r from-primary to-success bg-clip-text text-transparent;
   }
-
   .bg-hero {
     background: linear-gradient(135deg, #E8F5E9 0%, #FFFFFF 50%, #FFF8EC 100%);
   }
-
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
 
-  /* CSS animations */
+  /* ── Keyframes ─────────────────────────────────────────────────────── */
+  @keyframes shimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position:  400px 0; }
+  }
   @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(20px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -149,7 +173,6 @@
     85%  { opacity: 1; transform: translateY(0); }
     100% { opacity: 0; transform: translateY(-8px); }
   }
-
   @keyframes circleDraw {
     from { stroke-dashoffset: 160; }
     to   { stroke-dashoffset: 0; }
@@ -158,18 +181,62 @@
     from { stroke-dashoffset: 60; }
     to   { stroke-dashoffset: 0; }
   }
+  @keyframes badgeBounce {
+    0%,100% { transform: scale(1); }
+    30%      { transform: scale(1.6); }
+    60%      { transform: scale(0.85); }
+  }
+  @keyframes glowPulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+    50%      { box-shadow: 0 0 0 6px rgba(239,68,68,0.3); }
+  }
+  @keyframes gradientShift {
+    0%,100% { background-position: 0% 50%; }
+    50%      { background-position: 100% 50%; }
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0) rotate(0deg); }
+    33%      { transform: translateY(-14px) rotate(2deg); }
+    66%      { transform: translateY(-6px) rotate(-1deg); }
+  }
+  @keyframes marquee {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  @keyframes wiggle {
+    0%,100% { transform: rotate(0deg); }
+    25%      { transform: rotate(-7deg); }
+    75%      { transform: rotate(7deg); }
+  }
+  @keyframes wheelSpin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  @keyframes pulseSoft {
+    0%,100% { transform: scale(1); }
+    50%      { transform: scale(1.07); }
+  }
 
-  .animate-fade-in-up   { animation: fadeInUp    0.55s ease-out both; }
-  .animate-fade-in      { animation: fadeIn       0.35s ease-out both; }
-  .animate-slide-down   { animation: slideDown    0.2s  ease-out both; }
-  .animate-slide-up     { animation: slideUp      0.3s  ease-out both; }
-  .animate-text-swap    { animation: textSwap     3s    ease-in-out both; }
-  .animate-circle-draw  {
+  /* ── Utility classes ──────────────────────────────────────────────── */
+  .animate-badge-bounce  { animation: badgeBounce 0.45s ease-out; }
+  .animate-glow          { animation: glowPulse    2s ease-in-out infinite; }
+  .animate-gradient      { background-size: 300% 300%; animation: gradientShift 8s ease infinite; }
+  .animate-float         { animation: float        6s ease-in-out infinite; }
+  .animate-marquee       { animation: marquee 24s linear infinite; white-space: nowrap; display: inline-block; }
+  .animate-wiggle        { animation: wiggle       2s ease-in-out infinite; }
+  .animate-wheel         { animation: wheelSpin    1.2s linear infinite; }
+  .animate-pulse-soft    { animation: pulseSoft    2s ease-in-out infinite; }
+  .animate-fade-in-up    { animation: fadeInUp     0.55s ease-out both; }
+  .animate-fade-in       { animation: fadeIn       0.35s ease-out both; }
+  .animate-slide-down    { animation: slideDown    0.2s  ease-out both; }
+  .animate-slide-up      { animation: slideUp      0.3s  ease-out both; }
+  .animate-text-swap     { animation: textSwap     3s    ease-in-out both; }
+  .animate-circle-draw   {
     stroke-dasharray: 160;
     stroke-dashoffset: 160;
     animation: circleDraw 0.5s ease-out 0.1s forwards;
   }
-  .animate-check-draw   {
+  .animate-check-draw    {
     stroke-dasharray: 60;
     stroke-dashoffset: 60;
     animation: checkDraw 0.4s ease-out 0.55s forwards;
@@ -181,7 +248,15 @@
   .delay-400 { animation-delay: 0.40s; }
   .delay-500 { animation-delay: 0.50s; }
 
-  /* Custom range input */
+  /* ── Stagger helpers for skeleton/content fade ────────────────────── */
+  .stagger-1 { animation-delay: 0.05s; }
+  .stagger-2 { animation-delay: 0.10s; }
+  .stagger-3 { animation-delay: 0.15s; }
+  .stagger-4 { animation-delay: 0.20s; }
+  .stagger-5 { animation-delay: 0.25s; }
+  .stagger-6 { animation-delay: 0.30s; }
+
+  /* Range slider */
   input[type="range"] {
     -webkit-appearance: none;
     appearance: none;
@@ -193,8 +268,7 @@
   input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 18px;
-    height: 18px;
+    width: 18px; height: 18px;
     border-radius: 50%;
     background: #1A6B3A;
     cursor: pointer;
@@ -202,8 +276,7 @@
     box-shadow: 0 1px 4px rgba(0,0,0,0.2);
   }
   input[type="range"]::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
+    width: 18px; height: 18px;
     border-radius: 50%;
     background: #1A6B3A;
     cursor: pointer;

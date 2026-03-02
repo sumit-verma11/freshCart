@@ -2,14 +2,14 @@
 
 function SkeletonBox({ className = "" }: { className?: string }) {
   return (
-    <div className={`animate-pulse bg-gray-200 rounded-lg ${className}`} />
+    <div className={`skeleton-shimmer rounded-lg ${className}`} />
   );
 }
 
 /** Matches the shape of a ProductCard */
 export function ProductCardSkeleton() {
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-border">
+    <div className="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-sm border border-border dark:border-gray-800">
       {/* Image area */}
       <SkeletonBox className="aspect-square rounded-none" />
       {/* Info area */}
@@ -70,7 +70,7 @@ export function ProductDetailSkeleton() {
 /** Category card skeleton */
 export function CategoryCardSkeleton() {
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-border p-4 flex flex-col items-center gap-3">
+    <div className="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-sm border border-border dark:border-gray-800 p-4 flex flex-col items-center gap-3">
       <SkeletonBox className="w-16 h-16 rounded-full" />
       <SkeletonBox className="h-4 w-20" />
     </div>
@@ -80,7 +80,7 @@ export function CategoryCardSkeleton() {
 /** Order card skeleton */
 export function OrderCardSkeleton() {
   return (
-    <div className="bg-white rounded-2xl border border-border p-5 space-y-3">
+    <div className="bg-white dark:bg-gray-900 rounded-2xl border border-border dark:border-gray-800 p-5 space-y-3">
       <div className="flex items-center justify-between">
         <SkeletonBox className="h-5 w-32" />
         <SkeletonBox className="h-6 w-20 rounded-full" />

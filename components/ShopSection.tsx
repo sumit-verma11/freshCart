@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { motion } from "framer-motion";
 import { useSearchParams, useRouter } from "next/navigation";
 import { SlidersHorizontal, X, ChevronRight, Leaf, RotateCcw, MapPin, Loader2 } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
@@ -43,16 +44,16 @@ const SORT_OPTIONS = [
 
 function ProductSkeleton() {
   return (
-    <div className="card overflow-hidden animate-pulse">
-      <div className="aspect-square bg-gray-200" />
+    <div className="card overflow-hidden">
+      <div className="aspect-square skeleton-shimmer" />
       <div className="p-3 space-y-2">
-        <div className="h-2.5 bg-gray-200 rounded w-16" />
-        <div className="h-3.5 bg-gray-200 rounded w-full" />
-        <div className="h-3.5 bg-gray-200 rounded w-3/4" />
-        <div className="h-2.5 bg-gray-200 rounded w-12" />
+        <div className="h-2.5 skeleton-shimmer rounded w-16" />
+        <div className="h-3.5 skeleton-shimmer rounded w-full" />
+        <div className="h-3.5 skeleton-shimmer rounded w-3/4" />
+        <div className="h-2.5 skeleton-shimmer rounded w-12" />
         <div className="flex justify-between items-center pt-1">
-          <div className="h-5 bg-gray-200 rounded w-20" />
-          <div className="w-8 h-8 bg-gray-200 rounded-xl" />
+          <div className="h-5 skeleton-shimmer rounded w-20" />
+          <div className="w-8 h-8 skeleton-shimmer rounded-xl" />
         </div>
       </div>
     </div>
@@ -284,11 +285,13 @@ export default function ShopSection({ initialCategories }: Props) {
   const [totalPages, setTotalPages]     = useState(1);
   const [total, setTotal]               = useState(0);
   const [loading, setLoading]           = useState(true);
+  const [loadingMore, setLoadingMore]   = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [subcategories, setSubcategories] = useState<CategoryItem[]>([]);
   const [refreshKey, setRefreshKey]     = useState(0);
 
   const searchTimer = useRef<ReturnType<typeof setTimeout>>();
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   const { isPulling, pullProgress, isRefreshing } = usePullToRefresh({
     onRefresh: () => setRefreshKey((k) => k + 1),
@@ -312,6 +315,7 @@ export default function ShopSection({ initialCategories }: Props) {
     setDSearch(q);
     setFilters((f) => ({ ...f, category: cat, subcategory: "" }));
     setPage(1);
+    setProducts([]);
   }, [searchParams]);
 
   // Load subcategories when category changes
@@ -325,7 +329,9 @@ export default function ShopSection({ initialCategories }: Props) {
 
   // Fetch products when any filter/search/page changes
   const fetchProducts = useCallback(async () => {
-    setLoading(true);
+    const isFirstPage = page === 1;
+    if (isFirstPage) setLoading(true);
+    else setLoadingMore(true);
     try {
       const params = new URLSearchParams();
       params.set("page", String(page));
@@ -350,7 +356,11 @@ export default function ShopSection({ initialCategories }: Props) {
       const data = await res.json();
 
       if (data.success) {
-        setProducts(data.data);
+        if (isFirstPage) {
+          setProducts(data.data);
+        } else {
+          setProducts((prev) => [...prev, ...data.data]);
+        }
         setTotal(data.pagination.total);
         setTotalPages(data.pagination.totalPages);
       }
@@ -358,15 +368,33 @@ export default function ShopSection({ initialCategories }: Props) {
       // keep existing products on error
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch, filters, page, pincodeInfo?.pincode, refreshKey]);
 
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
+  // IntersectionObserver — load next page when sentinel enters viewport
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !loading && !loadingMore && page < totalPages) {
+          setPage((p) => p + 1);
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [loading, loadingMore, page, totalPages]);
+
   function updateFilter(patch: Partial<FilterState>) {
     setFilters((f) => ({ ...f, ...patch }));
     setPage(1);
+    setProducts([]);
   }
 
   function resetFilters() {
@@ -414,7 +442,7 @@ export default function ShopSection({ initialCategories }: Props) {
                       whitespace-nowrap transition-all shrink-0 border
                       ${!filters.category
                         ? "bg-primary text-white border-primary shadow-sm"
-                        : "bg-white text-muted border-border hover:border-primary hover:text-primary"
+                        : "bg-white dark:bg-gray-900 text-muted border-border hover:border-primary hover:text-primary"
                       }`}
         >
           🛒 All
@@ -427,7 +455,7 @@ export default function ShopSection({ initialCategories }: Props) {
                         whitespace-nowrap transition-all shrink-0 border
                         ${filters.category === cat._id
                           ? "bg-primary text-white border-primary shadow-sm"
-                          : "bg-white text-muted border-border hover:border-primary hover:text-primary"
+                          : "bg-white dark:bg-gray-900 text-muted border-border hover:border-primary hover:text-primary"
                         }`}
           >
             <span>{CATEGORY_EMOJI[cat.name] ?? "🛒"}</span>
@@ -531,10 +559,34 @@ export default function ShopSection({ initialCategories }: Props) {
               ))}
             </div>
           ) : products.length === 0 ? (
-            <div className="card p-16 text-center">
-              <p className="text-5xl mb-4">🥬</p>
-              <h3 className="text-lg font-bold text-dark mb-2">No products found</h3>
-              <p className="text-muted text-sm mb-6">
+            <div className="card p-12 text-center flex flex-col items-center">
+              {/* Animated magnifying glass SVG */}
+              <motion.div
+                animate={{ rotate: [0, -8, 8, -8, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.5 }}
+                className="mb-5"
+              >
+                <svg viewBox="0 0 100 100" fill="none" className="w-24 h-24" aria-hidden="true">
+                  {/* Circle of magnifier */}
+                  <circle cx="42" cy="42" r="26" stroke="#1A6B3A" strokeWidth="5" fill="#E8F5E9" />
+                  {/* Lens glare */}
+                  <path
+                    d="M30 30 Q35 26 42 26"
+                    stroke="white"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    opacity="0.7"
+                  />
+                  {/* Handle */}
+                  <line x1="61" y1="61" x2="80" y2="80" stroke="#1A6B3A" strokeWidth="5" strokeLinecap="round" />
+                  {/* Question mark */}
+                  <text x="34" y="52" fontFamily="Inter, sans-serif" fontSize="22" fontWeight="700" fill="#1A6B3A">
+                    ?
+                  </text>
+                </svg>
+              </motion.div>
+              <h3 className="text-lg font-bold text-dark dark:text-white mb-2">No products found</h3>
+              <p className="text-muted text-sm mb-6 max-w-xs">
                 {debouncedSearch
                   ? `No results for "${debouncedSearch}". Try a different keyword.`
                   : "No products match the selected filters."}
@@ -545,50 +597,41 @@ export default function ShopSection({ initialCategories }: Props) {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <motion.div
+                key={`${debouncedSearch}-${filters.category}-${filters.subcategory}`}
+                className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+                variants={{
+                  visible: { transition: { staggerChildren: 0.04 } },
+                }}
+                initial="hidden"
+                animate="visible"
+              >
                 {products.map((product) => (
-                  <ProductCard key={product._id.toString()} product={product} />
+                  <motion.div
+                    key={product._id.toString()}
+                    variants={{
+                      hidden:   { opacity: 0, y: 20 },
+                      visible:  { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 25 } },
+                    }}
+                  >
+                    <ProductCard product={product} />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-10">
-                  <button
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                    className="btn-ghost px-4 py-2 text-sm disabled:opacity-40"
-                  >
-                    ← Prev
-                  </button>
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
-                      const start = Math.max(1, Math.min(page - 2, totalPages - 4));
-                      const p = start + i;
-                      return (
-                        <button
-                          key={p}
-                          onClick={() => setPage(p)}
-                          className={`w-9 h-9 rounded-xl text-sm font-semibold transition-all
-                                      ${p === page
-                                        ? "bg-primary text-white"
-                                        : "text-muted hover:bg-accent hover:text-primary"
-                                      }`}
-                        >
-                          {p}
-                        </button>
-                      );
-                    })}
+              {/* Infinite scroll sentinel */}
+              <div ref={sentinelRef} className="mt-8">
+                {loadingMore && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {Array.from({ length: 4 }).map((_, i) => <ProductSkeleton key={i} />)}
                   </div>
-                  <button
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={page === totalPages}
-                    className="btn-ghost px-4 py-2 text-sm disabled:opacity-40"
-                  >
-                    Next →
-                  </button>
-                </div>
-              )}
+                )}
+                {!loadingMore && page >= totalPages && products.length > 0 && (
+                  <p className="text-center text-sm text-muted py-6">
+                    🎉 You&apos;ve seen all {total} products
+                  </p>
+                )}
+              </div>
             </>
           )}
         </div>
@@ -603,7 +646,7 @@ export default function ShopSection({ initialCategories }: Props) {
             onClick={() => setMobileFiltersOpen(false)}
           />
           {/* Sheet */}
-          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl
+          <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-3xl
                           max-h-[90vh] overflow-y-auto animate-slide-up">
             {/* Handle */}
             <div className="flex justify-center pt-3 pb-1">
@@ -630,7 +673,7 @@ export default function ShopSection({ initialCategories }: Props) {
               />
             </div>
 
-            <div className="sticky bottom-0 bg-white border-t border-border p-4">
+            <div className="sticky bottom-0 bg-white dark:bg-gray-900 border-t border-border p-4">
               <button
                 onClick={() => setMobileFiltersOpen(false)}
                 className="btn-primary w-full flex items-center justify-center gap-2"

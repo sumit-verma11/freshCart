@@ -12,6 +12,8 @@ import {
 import { useCartStore } from "@/store/cart";
 import { useWishlistStore } from "@/store/wishlist";
 import { usePincodeStore } from "@/store/pincode";
+import { useCartSidebarStore } from "@/store/cartSidebar";
+import ThemeToggle from "@/components/ThemeToggle";
 import { IProduct } from "@/types";
 import { formatPrice } from "@/lib/utils";
 
@@ -66,6 +68,15 @@ export default function Navbar() {
   const cartCount     = useCartStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
   const wishlistCount = useWishlistStore((s) => s.items.length);
   const { info: pincodeInfo, setPincode, clearPincode } = usePincodeStore();
+  const toggleCartSidebar = useCartSidebarStore((s) => s.toggle);
+
+  // ── Shrink header on scroll ───────────────────────────────────────────────
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   // ── Fetched categories (real IDs from API) ────────────────────────────────
   const [navCategories, setNavCategories] = useState<NavCategory[]>(FALLBACK_NAV_CATEGORIES);
@@ -194,14 +205,23 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-white border-b border-border shadow-sm">
-        {/* Top strip */}
-        <div className="bg-primary text-white text-xs text-center py-1.5 font-medium tracking-wide">
-          🚚 Free delivery on orders above ₹499 &nbsp;|&nbsp; Same-day delivery available
+      <header className={`sticky top-0 z-50 bg-white/95 dark:bg-gray-950/95 backdrop-blur-md border-b border-border dark:border-gray-800 transition-all duration-300 ${scrolled ? "shadow-md dark:shadow-gray-900/50" : "shadow-sm"}`}>
+        {/* Top promo strip — marquee */}
+        <div className="bg-primary text-white text-xs py-1.5 font-medium overflow-hidden">
+          <div className="animate-marquee inline-flex gap-16 whitespace-nowrap">
+            <span>🚚 Free delivery on orders above ₹499</span>
+            <span>⚡ Same-day delivery available</span>
+            <span>🌿 Fresh organic produce daily</span>
+            <span>🎉 New users get ₹100 off first order</span>
+            <span>🚚 Free delivery on orders above ₹499</span>
+            <span>⚡ Same-day delivery available</span>
+            <span>🌿 Fresh organic produce daily</span>
+            <span>🎉 New users get ₹100 off first order</span>
+          </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3 h-16">
+          <div className={`flex items-center gap-3 transition-all duration-300 ${scrolled ? "h-12" : "h-16"}`}>
 
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 shrink-0">
@@ -239,11 +259,15 @@ export default function Navbar() {
                     value={searchInput}
                     onChange={(e) => setSearchInput(e.target.value)}
                     onFocus={() => searchInput.trim() && setSearchOpen(true)}
-                    placeholder="Search for vegetables, fruits, dairy..."
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-gray-50
+                    placeholder="Search vegetables, fruits, dairy... (⌘K)"
+                    className="w-full pl-10 pr-20 py-2.5 rounded-xl border border-border bg-gray-50
                                text-sm focus:outline-none focus:ring-2 focus:ring-primary/30
                                focus:border-primary focus:bg-white transition-all"
                   />
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 hidden lg:flex items-center gap-0.5
+                                   text-[10px] text-muted bg-gray-100 px-1.5 py-0.5 rounded font-mono pointer-events-none">
+                    ⌘K
+                  </span>
                   {searchLoading && (
                     <Loader2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4
                                         text-muted animate-spin" />
@@ -253,8 +277,8 @@ export default function Navbar() {
 
               {/* Search dropdown */}
               {searchOpen && (
-                <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-2xl
-                                shadow-modal border border-border overflow-hidden z-50 animate-slide-down">
+                <div className="absolute top-full mt-2 left-0 right-0 bg-white dark:bg-gray-900 rounded-2xl
+                                shadow-modal dark:shadow-black/40 border border-border dark:border-gray-800 overflow-hidden z-50 animate-slide-down">
                   {searchResults.length === 0 ? (
                     <div className="px-5 py-8 text-center">
                       <p className="text-2xl mb-2">🔍</p>
@@ -273,7 +297,7 @@ export default function Navbar() {
                               key={product._id.toString()}
                               href={`/product/${product.slug}`}
                               onClick={() => { setSearchOpen(false); setSearchInput(""); }}
-                              className="flex items-center gap-3 px-4 py-3 hover:bg-accent transition-colors"
+                              className="flex items-center gap-3 px-4 py-3 hover:bg-accent dark:hover:bg-gray-800 transition-colors"
                             >
                               <div className="w-11 h-11 rounded-xl bg-accent overflow-hidden shrink-0">
                                 {product.images?.[0] ? (
@@ -333,6 +357,11 @@ export default function Navbar() {
             {/* Right actions */}
             <div className="flex items-center gap-1 ml-auto md:ml-0">
 
+              {/* Theme toggle */}
+              <div className="hidden sm:block">
+                <ThemeToggle />
+              </div>
+
               {/* Wishlist */}
               <Link href="/wishlist" className="relative btn-ghost p-2 hidden sm:flex">
                 <Heart className="w-5 h-5" />
@@ -345,18 +374,25 @@ export default function Navbar() {
                 )}
               </Link>
 
-              {/* Cart */}
-              <Link href="/cart" className="relative flex items-center gap-2 btn-ghost">
+              {/* Cart → opens sidebar */}
+              <button
+                onClick={toggleCartSidebar}
+                className="relative flex items-center gap-2 btn-ghost"
+                aria-label="Open cart"
+              >
                 <ShoppingCart className="w-5 h-5" />
                 <span className="hidden sm:inline text-sm font-medium">Cart</span>
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-secondary text-white text-xs
-                                   font-bold w-5 h-5 rounded-full flex items-center justify-center
-                                   leading-none">
+                  <span
+                    key={cartCount}
+                    className="absolute -top-1 -right-1 bg-secondary text-white text-xs
+                               font-bold w-5 h-5 rounded-full flex items-center justify-center
+                               leading-none animate-badge-bounce"
+                  >
                     {cartCount > 9 ? "9+" : cartCount}
                   </span>
                 )}
-              </Link>
+              </button>
 
               {/* Auth */}
               {session ? (
@@ -393,7 +429,7 @@ export default function Navbar() {
                             href="/dashboard"
                             onClick={() => setUserMenuOpen(false)}
                             className="flex items-center gap-3 px-4 py-2.5 text-sm
-                                       hover:bg-accent text-dark transition-colors"
+                                       hover:bg-accent dark:hover:bg-gray-800 text-dark transition-colors"
                           >
                             <LayoutDashboard className="w-4 h-4 text-primary" />
                             Admin Dashboard
@@ -403,7 +439,7 @@ export default function Navbar() {
                           href="/orders"
                           onClick={() => setUserMenuOpen(false)}
                           className="flex items-center gap-3 px-4 py-2.5 text-sm
-                                     hover:bg-accent text-dark transition-colors"
+                                     hover:bg-accent dark:hover:bg-gray-800 text-dark transition-colors"
                         >
                           <Package className="w-4 h-4 text-muted" />
                           My Orders
@@ -412,7 +448,7 @@ export default function Navbar() {
                         <button
                           onClick={() => { setUserMenuOpen(false); signOut({ callbackUrl: "/" }); }}
                           className="flex items-center gap-3 w-full px-4 py-2.5 text-sm
-                                     text-danger hover:bg-red-50 transition-colors"
+                                     text-danger hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
                         >
                           <LogOut className="w-4 h-4" />
                           Sign Out
@@ -446,7 +482,7 @@ export default function Navbar() {
                 href={`/?category=${_id}`}
                 className="flex items-center gap-1.5 text-sm font-medium whitespace-nowrap
                            px-3 py-1.5 rounded-lg text-muted hover:text-primary
-                           hover:bg-accent transition-colors"
+                           hover:bg-accent dark:hover:bg-gray-800 transition-colors"
               >
                 <span>{emoji}</span> {label}
               </Link>
@@ -456,7 +492,7 @@ export default function Navbar() {
 
         {/* Mobile menu */}
         {mobileOpen && (
-          <div className="md:hidden border-t border-border bg-white px-4 py-4 space-y-3
+          <div className="md:hidden border-t border-border dark:border-gray-800 bg-white dark:bg-gray-950 px-4 py-4 space-y-3
                           animate-slide-down">
             {/* Mobile search */}
             <form onSubmit={handleSearchSubmit}>
@@ -513,8 +549,8 @@ export default function Navbar() {
           />
 
           {/* Sheet */}
-          <div className="relative bg-white w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl
-                          p-6 shadow-modal animate-slide-up sm:animate-fade-in-up">
+          <div className="relative bg-white dark:bg-gray-900 w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl
+                          p-6 shadow-modal dark:shadow-black/50 animate-slide-up sm:animate-fade-in-up">
             <button
               onClick={() => setPincodeOpen(false)}
               className="absolute right-5 top-5 text-muted hover:text-dark transition-colors"

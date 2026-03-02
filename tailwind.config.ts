@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: "class",
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -35,13 +36,14 @@ const config: Config = {
           800: "#874D0B",
           900: "#6E3E0C",
         },
-        accent: "#E8F5E9",
-        dark: "#1C1C1E",
-        surface: "#FFFFFF",
-        muted: "#6B7280",
-        danger: "#DC2626",
-        success: "#16A34A",
-        border: "#E5E7EB",
+        // Semantic tokens driven by CSS vars — auto-adapt to .dark class
+        accent:  "var(--color-accent)",
+        dark:    "var(--color-dark)",
+        surface: "var(--color-surface)",
+        muted:   "var(--color-muted)",
+        danger:  "var(--color-danger)",
+        success: "var(--color-success)",
+        border:  "var(--color-border)",
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
@@ -50,6 +52,7 @@ const config: Config = {
         card: "0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)",
         "card-hover": "0 4px 12px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.06)",
         modal: "0 20px 60px rgba(0,0,0,0.15)",
+        glass: "0 8px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)",
       },
       borderRadius: {
         xl: "12px",
