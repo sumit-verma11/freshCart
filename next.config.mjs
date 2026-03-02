@@ -22,7 +22,6 @@ export default withPWA({
   // Merges /worker/index.ts into the generated service worker
   customWorkerSrc: "worker",
   cacheOnFrontEndNav: true,
-  aggressiveFrontEndNavCaching: true,
   reloadOnOnline: true,
   fallbacks: { document: "/offline" },
   workboxOptions: {

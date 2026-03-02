@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
+import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongoose";
 import Product from "@/models/Product";
+import Category from "@/models/Category";
 import { ok, fail, paginated, requireAdmin, zodFail } from "@/lib/api";
 import { createProductSchema } from "@/lib/validators";
 import { ZodError } from "zod";
@@ -28,7 +30,24 @@ export async function GET(req: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const query: Record<string, any> = {};
 
-    if (category)    query.category    = category;
+    // Resolve category: accept either a MongoDB ObjectId string (from ShopSection Quick-Nav)
+    // or a plain category name string (from Navbar links like "Fruits & Vegetables").
+    if (category) {
+      if (mongoose.isValidObjectId(category)) {
+        query.category = category;
+      } else {
+        const escaped = category.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const cat = await Category.findOne({
+          name: { $regex: new RegExp(`^${escaped}$`, "i") },
+          isActive: true,
+        }).lean();
+        if (cat) {
+          query.category = cat._id;
+        } else {
+          return paginated([], page, limit, 0);
+        }
+      }
+    }
     if (subCategory) query.subCategory = subCategory;
     if (featured === "true") query.isFeatured = true;
     if (available !== "false") query.isAvailable = true; // default: only available products

@@ -17,13 +17,25 @@ import { formatPrice } from "@/lib/utils";
 
 // ─── Category quick links ─────────────────────────────────────────────────────
 
-const NAV_CATEGORIES = [
-  { label: "Fruits & Veggies", emoji: "🥦", slug: "Fruits%20%26%20Vegetables" },
-  { label: "Dairy & Eggs",     emoji: "🥛", slug: "Dairy%20%26%20Eggs" },
-  { label: "Bakery",           emoji: "🍞", slug: "Bakery" },
-  { label: "Beverages",        emoji: "🧃", slug: "Beverages" },
-  { label: "Snacks",           emoji: "🍿", slug: "Snacks" },
-  { label: "Meat & Seafood",   emoji: "🐟", slug: "Meat%20%26%20Seafood" },
+const CATEGORY_EMOJI_MAP: Record<string, string> = {
+  "Fruits & Vegetables": "🥦",
+  "Dairy & Eggs":        "🥛",
+  "Bakery":              "🍞",
+  "Beverages":           "🧃",
+  "Snacks":              "🍿",
+  "Meat & Seafood":      "🐟",
+};
+
+interface NavCategory { _id: string; name: string; label: string; emoji: string }
+
+// Fallback shown while categories are being fetched (IDs will be replaced by real ones)
+const FALLBACK_NAV_CATEGORIES: NavCategory[] = [
+  { _id: "Fruits & Vegetables", name: "Fruits & Vegetables", label: "Fruits & Veggies", emoji: "🥦" },
+  { _id: "Dairy & Eggs",        name: "Dairy & Eggs",        label: "Dairy & Eggs",     emoji: "🥛" },
+  { _id: "Bakery",              name: "Bakery",              label: "Bakery",            emoji: "🍞" },
+  { _id: "Beverages",           name: "Beverages",           label: "Beverages",         emoji: "🧃" },
+  { _id: "Snacks",              name: "Snacks",              label: "Snacks",            emoji: "🍿" },
+  { _id: "Meat & Seafood",      name: "Meat & Seafood",      label: "Meat & Seafood",    emoji: "🐟" },
 ];
 
 // ─── Text highlighter ─────────────────────────────────────────────────────────
@@ -54,6 +66,29 @@ export default function Navbar() {
   const cartCount     = useCartStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
   const wishlistCount = useWishlistStore((s) => s.items.length);
   const { info: pincodeInfo, setPincode, clearPincode } = usePincodeStore();
+
+  // ── Fetched categories (real IDs from API) ────────────────────────────────
+  const [navCategories, setNavCategories] = useState<NavCategory[]>(FALLBACK_NAV_CATEGORIES);
+
+  useEffect(() => {
+    fetch("/api/categories?active=true")
+      .then((r) => r.json())
+      .then((d) => {
+        if (!d.success) return;
+        const topLevel = d.data.filter((c: { parentCategory: unknown }) => !c.parentCategory);
+        if (topLevel.length > 0) {
+          setNavCategories(
+            topLevel.map((c: { _id: string; name: string }) => ({
+              _id:   c._id,
+              name:  c.name,
+              label: c.name.replace("Fruits & Vegetables", "Fruits & Veggies"),
+              emoji: CATEGORY_EMOJI_MAP[c.name] ?? "🛒",
+            }))
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // ── Mobile menu ──────────────────────────────────────────────────────────
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -405,10 +440,10 @@ export default function Navbar() {
 
           {/* Desktop category nav */}
           <nav className="hidden md:flex items-center gap-1 pb-2 overflow-x-auto scrollbar-hide">
-            {NAV_CATEGORIES.map(({ label, emoji, slug }) => (
+            {navCategories.map(({ _id, label, emoji }) => (
               <Link
-                key={slug}
-                href={`/?category=${slug}`}
+                key={_id}
+                href={`/?category=${_id}`}
                 className="flex items-center gap-1.5 text-sm font-medium whitespace-nowrap
                            px-3 py-1.5 rounded-lg text-muted hover:text-primary
                            hover:bg-accent transition-colors"
@@ -452,10 +487,10 @@ export default function Navbar() {
 
             {/* Mobile categories */}
             <div className="grid grid-cols-2 gap-1">
-              {NAV_CATEGORIES.map(({ label, emoji, slug }) => (
+              {navCategories.map(({ _id, label, emoji }) => (
                 <Link
-                  key={slug}
-                  href={`/?category=${slug}`}
+                  key={_id}
+                  href={`/?category=${_id}`}
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium
                              text-dark hover:text-primary hover:bg-accent rounded-lg transition-colors"
