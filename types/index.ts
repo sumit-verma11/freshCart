@@ -254,6 +254,17 @@ export interface IPincode {
   updatedAt: Date;
 }
 
+// ─── Push Subscriptions ───────────────────────────────────────────────────────
+
+export interface IPushSubscription {
+  _id:       string;
+  userId:    string;
+  endpoint:  string;
+  p256dh:    string;
+  auth:      string;
+  createdAt: string;
+}
+
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
 export interface ApiResponse<T = unknown> {

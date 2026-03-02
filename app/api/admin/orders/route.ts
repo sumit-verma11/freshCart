@@ -3,8 +3,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/mongoose";
 import Order from "@/models/Order";
+import PushSubscription from "@/models/PushSubscription";
 import { OrderStatus } from "@/types";
 import { publishSSE } from "@/lib/sse";
+import { sendPushNotification } from "@/lib/webpush";
 
 export const dynamic = "force-dynamic";
 
@@ -89,6 +91,25 @@ export async function PATCH(req: NextRequest) {
     // Push live status update to any connected SSE clients watching this order
     if (status) {
       publishSSE(`order:${id}`, { status, updatedAt: new Date().toISOString() });
+
+      // Send web push notification when order goes out for delivery
+      if (status === "out_for_delivery") {
+        const subs = await PushSubscription.find({ userId: order.userId }).lean();
+        await Promise.all(
+          subs.map(async (sub) => {
+            const ok = await sendPushNotification(
+              { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+              {
+                title: "Your order is out for delivery! 🛵",
+                body:  `Order #${order.orderNumber} is on its way to you.`,
+                url:   "/orders",
+                tag:   `order-${order._id}`,
+              }
+            );
+            if (!ok) await PushSubscription.deleteOne({ _id: sub._id });
+          })
+        );
+      }
     }
 
     return NextResponse.json({ success: true, data: order });

@@ -2,7 +2,9 @@
 
 import { useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
+import toast from "react-hot-toast";
 import { useCartStore } from "@/store/cart";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { IClientCartItem } from "@/types";
 
 /**
@@ -11,19 +13,22 @@ import { IClientCartItem } from "@/types";
  * - Same device / multiple tabs: BroadcastChannel fires instantly, zero server cost.
  * - Cross-device (mobile + desktop): POSTs cart to /api/cart/sync on change;
  *   server broadcasts to all other SSE connections belonging to the same user.
+ * - Offline: SSE POST is skipped; fires immediately when back online.
  */
 export function useCartSync() {
   const { items, setItems } = useCartStore();
-  const { data: session } = useSession();
+  const { data: session }   = useSession();
+  const isOnline            = useOnlineStatus();
 
   // Stable client ID for this browser tab (persists across renders, not page reloads)
-  const clientId  = useRef(
+  const clientId   = useRef(
     typeof crypto !== "undefined"
       ? crypto.randomUUID()
       : Math.random().toString(36).slice(2)
   );
-  const prevJson  = useRef("");
-  const debouncer = useRef<ReturnType<typeof setTimeout>>();
+  const prevJson   = useRef("");
+  const debouncer  = useRef<ReturnType<typeof setTimeout>>();
+  const wasOffline = useRef(false);
 
   // ── BroadcastChannel: instant cross-tab sync (same device) ─────────────────
   useEffect(() => {
@@ -42,15 +47,15 @@ export function useCartSync() {
     if (json === prevJson.current) return;
     prevJson.current = json;
 
-    // BroadcastChannel (instant)
+    // BroadcastChannel (instant, works offline too)
     try {
       const bc = new BroadcastChannel("freshcart-cart");
       bc.postMessage({ from: clientId.current, items });
       bc.close();
     } catch { /* SSR guard */ }
 
-    // SSE server push (cross-device, logged-in users only)
-    if (session?.user?.id) {
+    // SSE server push — skip when offline
+    if (session?.user?.id && isOnline) {
       clearTimeout(debouncer.current);
       debouncer.current = setTimeout(() => {
         fetch("/api/cart/sync", {
@@ -60,7 +65,26 @@ export function useCartSync() {
         }).catch(() => {});
       }, 500);
     }
-  }, [items, session]);
+  }, [items, session, isOnline]);
+
+  // ── Reconnect sync: fire an immediate sync when coming back online ──────────
+  useEffect(() => {
+    if (!isOnline) {
+      wasOffline.current = true;
+      return;
+    }
+    if (wasOffline.current && session?.user?.id) {
+      wasOffline.current = false;
+      toast("🔁 Back online — cart synced", { duration: 2500 });
+      // Trigger immediate sync with current items
+      fetch("/api/cart/sync", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ items, clientId: clientId.current }),
+      }).catch(() => {});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOnline, session?.user?.id]);
 
   // ── SSE: receive cross-device updates ──────────────────────────────────────
   useEffect(() => {

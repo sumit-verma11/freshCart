@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Search, ShoppingCart, Package, User } from "lucide-react";
 import { useCartStore } from "@/store/cart";
+import { haptic } from "@/lib/haptics";
 
 const NAV_ITEMS = [
   { href: "/",       label: "Home",    icon: Home },
@@ -31,6 +32,7 @@ export default function BottomNav() {
             <Link
               key={href}
               href={href}
+              onClick={() => haptic(20)}
               className={`flex-1 flex flex-col items-center justify-center gap-1 text-[10px]
                           font-semibold transition-colors relative
                           ${isActive ? "text-primary" : "text-muted hover:text-dark"}`}

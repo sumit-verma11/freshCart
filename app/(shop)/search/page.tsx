@@ -1,13 +1,16 @@
 "use client";
 
 import { Suspense, useEffect, useState, useCallback } from "react";
+import dynamic from "next/dynamic";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, SlidersHorizontal, X, Clock, TrendingUp } from "lucide-react";
+import { Search, SlidersHorizontal, X, Clock, TrendingUp, Camera } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import { ProductCardSkeleton, ProductGridSkeleton } from "@/components/Skeleton";
 import { useUserActivity } from "@/store/userActivity";
 import { IProduct } from "@/types";
 import { trackSearch } from "@/lib/analytics";
+
+const BarcodeScanner = dynamic(() => import("@/components/BarcodeScanner"), { ssr: false });
 
 const SORT_OPTIONS = [
   { label: "Relevance",       value: "createdAt:desc" },
@@ -46,14 +49,15 @@ function SearchContent() {
 
   const { hasOrdered } = useUserActivity();
 
-  const [input, setInput]       = useState(initialQuery);
-  const [query, setQuery]       = useState(initialQuery);
-  const [sort, setSort]         = useState(initialSort);
-  const [products, setProducts] = useState<IProduct[]>([]);
-  const [loading, setLoading]   = useState(false);
-  const [total, setTotal]       = useState(0);
-  const [history, setHistory]   = useState<string[]>([]);
+  const [input, setInput]         = useState(initialQuery);
+  const [query, setQuery]         = useState(initialQuery);
+  const [sort, setSort]           = useState(initialSort);
+  const [products, setProducts]   = useState<IProduct[]>([]);
+  const [loading, setLoading]     = useState(false);
+  const [total, setTotal]         = useState(0);
+  const [history, setHistory]     = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   // Load history on mount
   useEffect(() => { setHistory(getHistory()); }, []);
@@ -102,6 +106,14 @@ function SearchContent() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Barcode scanner overlay */}
+      {scannerOpen && (
+        <BarcodeScanner
+          onScan={(code) => { handleSearch(code); setScannerOpen(false); }}
+          onClose={() => setScannerOpen(false)}
+        />
+      )}
+
       {/* Search bar */}
       <div className="relative mb-6">
         <div className="flex items-center gap-3 bg-white border-2 border-primary rounded-2xl
@@ -122,6 +134,14 @@ function SearchContent() {
               <X className="w-4 h-4 text-muted" />
             </button>
           )}
+          {/* Camera / barcode scanner button */}
+          <button
+            onClick={() => setScannerOpen(true)}
+            className="text-muted hover:text-primary transition-colors shrink-0"
+            aria-label="Scan barcode"
+          >
+            <Camera className="w-5 h-5" />
+          </button>
           <button
             onClick={() => handleSearch(input)}
             className="bg-primary text-white text-sm font-semibold px-4 py-1.5 rounded-xl

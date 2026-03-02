@@ -12,6 +12,7 @@ import {
 import { formatPrice } from "@/lib/utils";
 import { OrderStatus } from "@/types";
 import { useOrderTrack } from "@/hooks/useOrderTrack";
+import PushPermissionPrompt from "@/components/PushPermissionPrompt";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -346,6 +347,9 @@ function OrdersContent() {
           </div>
         </div>
       )}
+
+      {/* Push notification permission — shown once after first order */}
+      {successNum && <PushPermissionPrompt />}
 
       {orders.length === 0 ? (
         <div className="text-center py-20">

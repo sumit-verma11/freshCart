@@ -8,12 +8,13 @@ import Product from "@/models/Product";
 import { calculateDiscount } from "@/lib/utils";
 import { ICategory, IProduct, INutritionFacts } from "@/types";
 
-import ImageGallery   from "../_components/ImageGallery";
+import ImageGallery    from "../_components/ImageGallery";
 import ProductActions, { SerializedProduct } from "../_components/ProductActions";
-import ProductTabs    from "../_components/ProductTabs";
-import RelatedCarousel  from "../_components/RelatedCarousel";
+import ProductTabs     from "../_components/ProductTabs";
+import RelatedCarousel from "../_components/RelatedCarousel";
 import RecentlyViewed  from "../_components/RecentlyViewed";
 import BoughtTogether  from "@/components/BoughtTogether";
+import ShareButton     from "../_components/ShareButton";
 
 // ─── Types (plain after JSON serialisation) ───────────────────────────────────
 
@@ -168,6 +169,11 @@ export default async function ProductPage({
 
         <ChevronRight className="w-3.5 h-3.5 shrink-0" />
         <span className="text-dark font-medium truncate max-w-[200px]">{product.name}</span>
+
+        {/* Share button — floated to the right in the breadcrumb row */}
+        <div className="ml-auto">
+          <ShareButton name={product.name} description={product.description} />
+        </div>
       </nav>
 
       {/* ── Two-column layout ──────────────────────────────────────────────── */}

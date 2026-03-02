@@ -11,6 +11,7 @@ import { useWishlistStore } from "@/store/wishlist";
 import { useUserActivity } from "@/store/userActivity";
 import { trackAddToCart, trackWishlistAdd, trackWishlistRemove } from "@/lib/analytics";
 import toast from "react-hot-toast";
+import { haptic } from "@/lib/haptics";
 
 interface ProductCardProps {
   product: IProduct;
@@ -71,6 +72,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     e.preventDefault();
     e.stopPropagation();
     if (isOutOfStock || !v) return;
+    haptic(50);
     addItem({
       productId: product._id.toString(),
       variantSku: v.sku,

@@ -1,20 +1,43 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { Toaster } from "react-hot-toast";
 
+export const viewport: Viewport = {
+  themeColor:          "#1A6B3A",
+  width:               "device-width",
+  initialScale:        1,
+  maximumScale:        5,
+  userScalable:        true,
+  viewportFit:         "cover",
+};
+
 export const metadata: Metadata = {
   title: {
-    default: "FreshCart — Premium Online Grocery",
+    default:  "FreshCart — Premium Online Grocery",
     template: "%s | FreshCart",
   },
   description:
     "Fresh groceries delivered to your doorstep. Shop fruits, vegetables, dairy, bakery, beverages, snacks & more.",
   keywords: ["grocery", "fresh", "organic", "vegetables", "fruits", "delivery", "india"],
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable:         true,
+    statusBarStyle:  "default",
+    title:           "FreshCart",
+  },
+  formatDetection: { telephone: false },
+  icons: {
+    icon:  [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   openGraph: {
-    title: "FreshCart — Premium Online Grocery",
+    title:       "FreshCart — Premium Online Grocery",
     description: "Fresh groceries delivered to your doorstep.",
-    type: "website",
+    type:        "website",
   },
 };
 
@@ -29,11 +52,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             toastOptions={{
               duration: 3000,
               style: {
-                background: "#1C1C1E",
-                color: "#FFFFFF",
+                background:   "#1C1C1E",
+                color:        "#FFFFFF",
                 borderRadius: "12px",
-                fontSize: "14px",
-                fontWeight: "500",
+                fontSize:     "14px",
+                fontWeight:   "500",
               },
               success: {
                 iconTheme: { primary: "#16A34A", secondary: "#FFFFFF" },

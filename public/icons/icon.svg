@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#1A6B3A"/>
+  <!-- Cart body -->
+  <path d="M140 160h232l-32 128H172z" fill="none" stroke="white" stroke-width="20" stroke-linejoin="round"/>
+  <!-- Cart handle -->
+  <path d="M120 128h40l40 160" fill="none" stroke="white" stroke-width="20" stroke-linecap="round"/>
+  <!-- Wheels -->
+  <circle cx="196" cy="320" r="20" fill="white"/>
+  <circle cx="300" cy="320" r="20" fill="white"/>
+  <!-- Leaf accent -->
+  <path d="M330 100 Q360 70 390 100 Q360 130 330 100z" fill="#F5A623"/>
+</svg>

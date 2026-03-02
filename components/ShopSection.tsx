@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { SlidersHorizontal, X, ChevronRight, Leaf, RotateCcw, MapPin } from "lucide-react";
+import { SlidersHorizontal, X, ChevronRight, Leaf, RotateCcw, MapPin, Loader2 } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import { usePincodeStore } from "@/store/pincode";
 import { useUserActivity } from "@/store/userActivity";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { IProduct } from "@/types";
 import { formatPrice } from "@/lib/utils";
 
@@ -285,8 +286,13 @@ export default function ShopSection({ initialCategories }: Props) {
   const [loading, setLoading]           = useState(true);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [subcategories, setSubcategories] = useState<CategoryItem[]>([]);
+  const [refreshKey, setRefreshKey]     = useState(0);
 
   const searchTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  const { isPulling, pullProgress, isRefreshing } = usePullToRefresh({
+    onRefresh: () => setRefreshKey((k) => k + 1),
+  });
 
   // Debounce search input → debouncedSearch
   useEffect(() => {
@@ -352,7 +358,8 @@ export default function ShopSection({ initialCategories }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, filters, page, pincodeInfo?.pincode]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch, filters, page, pincodeInfo?.pincode, refreshKey]);
 
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
@@ -389,6 +396,14 @@ export default function ShopSection({ initialCategories }: Props) {
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+      {/* Pull-to-refresh indicator */}
+      <div
+        className="flex justify-center overflow-hidden transition-all duration-300 lg:hidden"
+        style={{ height: (isPulling || isRefreshing) ? 40 : 0, opacity: isPulling ? pullProgress : isRefreshing ? 1 : 0 }}
+      >
+        <Loader2 className="w-6 h-6 text-primary animate-spin mt-2" />
+      </div>
 
       {/* Category Quick-Nav */}
       <div className="flex items-center gap-2 mb-8 overflow-x-auto scrollbar-hide pb-1">

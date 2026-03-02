@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import {
   LayoutDashboard, Package, Tag, ShoppingBag, MapPin,
-  Leaf, LogOut, Menu, X, ChevronRight,
+  Leaf, LogOut, Menu, X, ChevronRight, Bell,
 } from "lucide-react";
 
 const NAV = [
@@ -15,6 +15,7 @@ const NAV = [
   { href: "/admin/categories",  label: "Categories",   icon: Tag              },
   { href: "/admin/orders",      label: "Orders",       icon: ShoppingBag      },
   { href: "/admin/pincodes",    label: "Pincodes",     icon: MapPin           },
+  { href: "/admin/push",        label: "Push Notifs",  icon: Bell             },
 ];
 
 interface Props {
