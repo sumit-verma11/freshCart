@@ -9,6 +9,7 @@ import AnimatedHeroText from "./_components/AnimatedHeroText";
 import ShopSection, { CategoryItem } from "@/components/ShopSection";
 import HomepageRecentlyViewed from "@/components/HomepageRecentlyViewed";
 import JustForYou from "@/components/JustForYou";
+import FlashSaleBanner from "@/components/FlashSaleBanner";
 
 // ─── Server data fetch ────────────────────────────────────────────────────────
 
@@ -182,6 +183,9 @@ export default async function HomePage() {
           </p>
         </div>
       </section>
+
+      {/* ── Flash sale banner (client, live countdown) ───────────────────────── */}
+      <FlashSaleBanner />
 
       {/* ── Recently viewed (client, reads localStorage) ─────────────────────── */}
       <HomepageRecentlyViewed />

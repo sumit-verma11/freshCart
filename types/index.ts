@@ -146,6 +146,12 @@ export interface IProduct {
   // Nutrition (optional — packaged goods only)
   nutritionFacts?: INutritionFacts;
 
+  // Flash sale (admin-configurable time-limited discount)
+  flashSale?: {
+    discountPercent: number;  // 1–90
+    endsAt: Date | string;
+  };
+
   // Ratings (denormalised for read performance)
   rating: number;        // 0–5, two decimal places
   reviewCount: number;
@@ -221,6 +227,14 @@ export interface IOrder {
   grandTotal: number;       // sum of item.price * qty + deliveryCharge
   placedAt: Date;
   updatedAt: Date;
+
+  // Delivery partner stub (future live-tracking)
+  deliveryPartner?: {
+    name?: string;
+    phone?: string;
+    lat?: number;
+    lng?: number;
+  };
 }
 
 // ─── Pincode ──────────────────────────────────────────────────────────────────

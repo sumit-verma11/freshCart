@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/mongoose";
 import Order from "@/models/Order";
 import { OrderStatus } from "@/types";
+import { publishSSE } from "@/lib/sse";
 
 export const dynamic = "force-dynamic";
 
@@ -83,6 +84,11 @@ export async function PATCH(req: NextRequest) {
     const order = await Order.findByIdAndUpdate(id, updates, { new: true });
     if (!order) {
       return NextResponse.json({ success: false, error: "Order not found" }, { status: 404 });
+    }
+
+    // Push live status update to any connected SSE clients watching this order
+    if (status) {
+      publishSSE(`order:${id}`, { status, updatedAt: new Date().toISOString() });
     }
 
     return NextResponse.json({ success: true, data: order });

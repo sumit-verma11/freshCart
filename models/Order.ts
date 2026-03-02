@@ -151,6 +151,14 @@ const OrderSchema = new Schema<IOrderDocument>(
       type: Date,
       default: () => new Date(),
     },
+
+    // ── Delivery partner stub (future live-tracking feature)
+    deliveryPartner: {
+      name:  { type: String },
+      phone: { type: String },
+      lat:   { type: Number },
+      lng:   { type: Number },
+    },
   },
   {
     timestamps: { createdAt: false, updatedAt: "updatedAt" },

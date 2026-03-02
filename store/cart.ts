@@ -8,6 +8,7 @@ interface CartState {
   addItem: (item: IClientCartItem) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
+  setItems: (items: IClientCartItem[]) => void;
   clearCart: () => void;
   subtotal: () => number;
   deliveryCharge: () => number;
@@ -54,6 +55,8 @@ export const useCartStore = create<CartState>()(
           ),
         }));
       },
+
+      setItems: (items) => set({ items }),
 
       clearCart: () => set({ items: [] }),
 

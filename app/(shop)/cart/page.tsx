@@ -1,20 +1,45 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ShoppingCart, ArrowRight, Package, AlertTriangle, Tag } from "lucide-react";
+import toast from "react-hot-toast";
 import CartItem from "@/components/CartItem";
 import { useCartStore } from "@/store/cart";
 import { formatPrice } from "@/lib/utils";
+import { useStockWatch } from "@/hooks/useStockWatch";
 
 export default function CartPage() {
   const { items, subtotal, deliveryCharge, total } = useCartStore();
   const [hydrated,       setHydrated]       = useState(false);
   const [unavailableIds, setUnavailableIds] = useState<Set<string>>(new Set());
   const [checking,       setChecking]       = useState(false);
+  const toastedOOS = useRef(new Set<string>());
+
+  // Live stock watch — subscribes to SSE for all cart products
+  const productIds  = hydrated ? items.map((i) => i.productId) : [];
+  const stockData   = useStockWatch(productIds);
 
   // Wait for Zustand hydration
   useEffect(() => { setHydrated(true); }, []);
+
+  // React to live stock changes: toast OOS items + add to unavailableIds
+  useEffect(() => {
+    if (!hydrated) return;
+    const newUnavail = new Set(unavailableIds);
+    let changed = false;
+    for (const item of items) {
+      const stock = stockData[item.productId];
+      if (stock && !stock.isAvailable && !toastedOOS.current.has(item.productId)) {
+        toastedOOS.current.add(item.productId);
+        newUnavail.add(item.productId);
+        toast.error(`"${item.name}" is now out of stock`, { duration: 5000 });
+        changed = true;
+      }
+    }
+    if (changed) setUnavailableIds(newUnavail);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stockData, hydrated]);
 
   // Check live availability for every cart item
   useEffect(() => {
@@ -106,6 +131,7 @@ export default function CartPage() {
               key={`${item.productId}-${item.variantSku}`}
               item={item}
               isUnavailable={unavailableIds.has(item.productId)}
+              lowStockCount={stockData[item.productId]?.stockQty}
             />
           ))}
 

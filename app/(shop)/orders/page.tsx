@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { OrderStatus } from "@/types";
+import { useOrderTrack } from "@/hooks/useOrderTrack";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -35,6 +36,7 @@ interface Order {
   grandTotal: number;
   estimatedDelivery: { minHours: number; maxHours: number };
   placedAt: string;
+  deliveryPartner?: { name?: string; phone?: string; lat?: number; lng?: number };
 }
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
@@ -97,28 +99,46 @@ function DeliveryTimeline({ status }: { status: OrderStatus }) {
     <div className="relative pt-1">
       {/* Background line */}
       <div className="absolute top-5 left-5 right-5 h-0.5 bg-border" />
-      {/* Progress line */}
+      {/* Progress line — smooth fill animation */}
       <div
-        className="absolute top-5 left-5 h-0.5 bg-primary transition-all duration-500"
+        className="absolute top-5 left-5 h-0.5 bg-primary transition-all duration-700"
         style={{ width: `calc(${(activeStep / (TIMELINE.length - 1)) * 100}% - 2.5rem + ${activeStep === TIMELINE.length - 1 ? "1.25rem" : "0px"})` }}
       />
       <div className="relative flex justify-between">
         {TIMELINE.map((step, i) => {
-          const done    = i <= activeStep;
-          const current = i === activeStep;
-          const Icon    = step.icon;
+          const completed = i < activeStep;
+          const current   = i === activeStep;
+          const done      = i <= activeStep;
+          const isOFD     = i === 2; // "Out for Delivery" step index
+          const Icon      = step.icon;
           return (
             <div key={i} className="flex flex-col items-center gap-2" style={{ flex: "1" }}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 border-2
-                               transition-all duration-300 shrink-0
-                               ${done
-                                 ? "bg-primary border-primary text-white"
-                                 : "bg-white border-border text-muted"}`}>
-                <Icon className="w-3.5 h-3.5" />
+              <div className="relative w-8 h-8 shrink-0">
+                {/* Pulsing halo ring on the active step */}
+                {current && (
+                  <div className="absolute -inset-1.5 rounded-full bg-primary/25 animate-pulse" />
+                )}
+                <div className={`relative w-8 h-8 rounded-full flex items-center justify-center z-10 border-2
+                                 transition-all duration-300
+                                 ${done
+                                   ? "bg-primary border-primary text-white"
+                                   : "bg-white border-border text-muted"}`}>
+                  {current && isOFD ? (
+                    <span className="text-sm animate-bounce">🛵</span>
+                  ) : completed ? (
+                    /* Checkmark for fully-completed steps */
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={3}
+                         viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <Icon className="w-3.5 h-3.5" />
+                  )}
+                </div>
               </div>
-              <span className={`text-[10px] font-semibold text-center leading-tight px-1
+              <span className={`text-[10px] text-center leading-tight px-1
                                 ${done ? "text-primary" : "text-muted"}
-                                ${current ? "font-bold" : ""}`}>
+                                ${current ? "font-bold" : "font-semibold"}`}>
                 {step.label}
               </span>
             </div>
@@ -134,6 +154,8 @@ function DeliveryTimeline({ status }: { status: OrderStatus }) {
 function OrderDetail({ orderId }: { orderId: string }) {
   const [order,   setOrder]   = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  // Live status via SSE — overrides the fetched status when received
+  const liveStatus = useOrderTrack(orderId, true);
 
   useEffect(() => {
     fetch(`/api/orders/${orderId}`)
@@ -153,7 +175,8 @@ function OrderDetail({ orderId }: { orderId: string }) {
     return <p className="text-muted text-sm text-center py-4">Could not load order details.</p>;
   }
 
-  const showETA = order.status !== "delivered" && order.status !== "cancelled";
+  const displayStatus = liveStatus ?? order.status;
+  const showETA = displayStatus !== "delivered" && displayStatus !== "cancelled";
 
   return (
     <div className="space-y-5">
@@ -162,7 +185,7 @@ function OrderDetail({ orderId }: { orderId: string }) {
         <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-3">
           Delivery Progress
         </p>
-        <DeliveryTimeline status={order.status} />
+        <DeliveryTimeline status={displayStatus} />
         {showETA && (
           <p className="text-xs text-muted text-center mt-3">
             Estimated: <strong className="text-dark">
@@ -171,6 +194,28 @@ function OrderDetail({ orderId }: { orderId: string }) {
           </p>
         )}
       </div>
+
+      {/* Delivery partner stub — shown when out for delivery */}
+      {displayStatus === "out_for_delivery" && (
+        <div className="card p-4 mt-1 space-y-3">
+          <p className="font-semibold text-dark text-sm">Delivery Partner</p>
+          {order.deliveryPartner?.name ? (
+            <p className="text-sm text-muted">
+              {order.deliveryPartner.name}
+              {order.deliveryPartner.phone && ` · ${order.deliveryPartner.phone}`}
+            </p>
+          ) : (
+            <p className="text-sm text-muted">Assigning partner…</p>
+          )}
+          <div className="bg-gray-100 rounded-xl h-44 flex flex-col items-center justify-center gap-2">
+            <span className="text-3xl">🗺️</span>
+            <span className="text-sm text-muted">Live map tracking</span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+              Coming Soon
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Full items list */}
       <div>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Plus, X, Trash2, ArrowLeft, Loader2, Leaf, Star } from "lucide-react";
+import { Plus, X, Trash2, ArrowLeft, Loader2, Leaf, Star, Zap } from "lucide-react";
 import toast from "react-hot-toast";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -37,6 +37,7 @@ export interface ProductInitialData {
   images:             string[];
   tags:               string[];
   serviceablePincodes: string[];
+  flashSale?: { discountPercent: number; endsAt: string } | null;
 }
 
 const UNITS = ["g", "kg", "ml", "L", "pcs", "dozen", "pack"];
@@ -118,6 +119,15 @@ export default function ProductForm({ initialData, productId }: Props) {
   const [isOrganic,    setIsOrganic]    = useState(initialData?.isOrganic    ?? false);
   const [isFeatured,   setIsFeatured]   = useState(initialData?.isFeatured   ?? false);
 
+  // ── Flash sale ───────────────────────────────────────────────────────────────
+  const [flashEnabled,  setFlashEnabled]  = useState(!!(initialData?.flashSale?.endsAt));
+  const [flashDiscount, setFlashDiscount] = useState(String(initialData?.flashSale?.discountPercent ?? ""));
+  const [flashEndsAt,   setFlashEndsAt]   = useState(
+    initialData?.flashSale?.endsAt
+      ? new Date(initialData.flashSale.endsAt).toISOString().slice(0, 16)
+      : ""
+  );
+
   // ── Images ────────────────────────────────────────────────────────────────────
   const [images,    setImages]    = useState<string[]>(initialData?.images ?? []);
   const [imageUrl,  setImageUrl]  = useState("");
@@ -189,6 +199,9 @@ export default function ProductForm({ initialData, productId }: Props) {
       images,
       tags,
       serviceablePincodes: allPincodes ? [] : pincodes,
+      flashSale: flashEnabled && flashDiscount && flashEndsAt
+        ? { discountPercent: Number(flashDiscount), endsAt: new Date(flashEndsAt).toISOString() }
+        : null,
     };
 
     setLoading(true);
@@ -473,6 +486,65 @@ export default function ProductForm({ initialData, productId }: Props) {
                 </div>
               )}
             </>
+          )}
+        </div>
+
+        {/* ── Flash Sale ──────────────────────────────────────────────────────── */}
+        <div className="card p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-orange-500" />
+              <h2 className="font-bold text-dark">Flash Sale</h2>
+            </div>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <div
+                onClick={() => setFlashEnabled((v) => !v)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full cursor-pointer
+                            transition-colors ${flashEnabled ? "bg-orange-500" : "bg-gray-300"}`}
+              >
+                <span className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transform
+                                  transition-transform ${flashEnabled ? "translate-x-6" : "translate-x-1"}`} />
+              </div>
+              <span className="text-sm font-medium text-dark">
+                {flashEnabled ? "Enabled" : "Disabled"}
+              </span>
+            </label>
+          </div>
+
+          {flashEnabled && (
+            <div className="grid sm:grid-cols-2 gap-4 p-4 bg-orange-50 rounded-xl border border-orange-200">
+              <div>
+                <label className="block text-xs font-semibold text-muted uppercase tracking-wide mb-1.5">
+                  Discount % (1–90) *
+                </label>
+                <input
+                  type="number" min="1" max="90" step="1"
+                  required={flashEnabled}
+                  className="input"
+                  placeholder="e.g. 20"
+                  value={flashDiscount}
+                  onChange={(e) => setFlashDiscount(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-muted uppercase tracking-wide mb-1.5">
+                  Sale Ends At *
+                </label>
+                <input
+                  type="datetime-local"
+                  required={flashEnabled}
+                  className="input"
+                  value={flashEndsAt}
+                  min={new Date().toISOString().slice(0, 16)}
+                  onChange={(e) => setFlashEndsAt(e.target.value)}
+                />
+              </div>
+              {flashDiscount && (
+                <p className="sm:col-span-2 text-xs text-orange-700 font-medium">
+                  ⚡ Flash price will be shown on product cards automatically while the sale is active.
+                </p>
+              )}
+            </div>
           )}
         </div>
 

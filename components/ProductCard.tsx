@@ -1,8 +1,9 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingCart, Leaf, Star, Minus, Plus, Heart, Flame, Sparkles, RotateCcw } from "lucide-react";
+import { ShoppingCart, Leaf, Star, Minus, Plus, Heart, Flame, Sparkles, RotateCcw, Zap } from "lucide-react";
 import { ICategory, IProduct } from "@/types";
 import { formatPrice, calculateDiscount } from "@/lib/utils";
 import { useCartStore } from "@/store/cart";
@@ -35,6 +36,30 @@ export default function ProductCard({ product }: ProductCardProps) {
   const reordered = hasOrdered(pid);
   const daysAgo = daysSinceOrder(pid);
 
+  // Flash sale
+  const flashEndsAt = product.flashSale?.endsAt;
+  const flashActive = !!(flashEndsAt && new Date(flashEndsAt) > new Date());
+  const flashPrice = flashActive && v && product.flashSale
+    ? Math.round(v.mrp * (1 - product.flashSale.discountPercent / 100))
+    : effectivePrice;
+
+  const [countdown, setCountdown] = useState<string | null>(null);
+  useEffect(() => {
+    if (!flashActive || !flashEndsAt) return;
+    const tick = () => {
+      const ms = new Date(flashEndsAt).getTime() - Date.now();
+      if (ms <= 0) { setCountdown(null); return; }
+      const h = Math.floor(ms / 3600000);
+      const m = Math.floor((ms % 3600000) / 60000);
+      const s = Math.floor((ms % 60000) / 1000);
+      setCountdown([h, m, s].map((n) => String(n).padStart(2, "0")).join(":"));
+    };
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flashActive]);
+
   const categoryName =
     product.category !== null &&
     typeof product.category === "object" &&
@@ -53,7 +78,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       image: product.images[0] ?? "/placeholder.png",
       unit: `${v.size}${v.unit}`,
       mrp: v.mrp,
-      sellingPrice: v.sellingPrice,
+      sellingPrice: flashPrice,
       quantity: 1,
       stock: product.stockQty,
     });
@@ -127,6 +152,12 @@ export default function ProductCard({ product }: ProductCardProps) {
 
           {/* Badges (top-left) */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
+            {flashActive && (
+              <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5
+                               rounded-full bg-red-500 text-white">
+                <Zap className="w-3 h-3" /> FLASH
+              </span>
+            )}
             {reordered && (
               <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5
                                rounded-full bg-green-500 text-white">
@@ -188,11 +219,14 @@ export default function ProductCard({ product }: ProductCardProps) {
           {/* Price + cart controls */}
           <div className="flex items-center justify-between mt-auto pt-1 gap-2">
             <div className="min-w-0">
-              <span className="price-current text-base">{formatPrice(effectivePrice)}</span>
-              {v && v.sellingPrice < v.mrp && (
+              <span className="price-current text-base">{formatPrice(flashActive ? flashPrice : effectivePrice)}</span>
+              {v && (flashActive ? flashPrice < v.mrp : v.sellingPrice < v.mrp) && (
                 <span className="price-original text-xs ml-1.5">{formatPrice(v.mrp)}</span>
               )}
-              {daysAgo !== null && (
+              {flashActive && countdown && (
+                <p className="text-[10px] text-red-600 font-bold mt-0.5">⚡ {countdown}</p>
+              )}
+              {!flashActive && daysAgo !== null && (
                 <p className="text-[10px] text-green-600 font-medium mt-0.5">
                   {daysAgo === 0 ? "Ordered today" : `Ordered ${daysAgo}d ago`}
                 </p>

@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/mongoose";
 import Product from "@/models/Product";
 import { slugify } from "@/lib/utils";
+import { publishSSE } from "@/lib/sse";
 
 export const dynamic = "force-dynamic";
 
@@ -115,6 +116,13 @@ export async function PUT(req: NextRequest) {
     if (!product) {
       return NextResponse.json({ success: false, error: "Product not found" }, { status: 404 });
     }
+
+    // Push live stock update to any SSE clients watching this product
+    publishSSE(`stock:${id}`, {
+      productId:   id,
+      stockQty:    product.stockQty,
+      isAvailable: product.isAvailable,
+    });
 
     return NextResponse.json({ success: true, data: product });
   } catch (error) {

@@ -134,6 +134,12 @@ const ProductSchema = new Schema<IProductDocument>(
     // ── Nutrition
     nutritionFacts: { type: NutritionFactsSchema, default: undefined },
 
+    // ── Flash sale (optional — admin-configurable time-limited discount)
+    flashSale: {
+      discountPercent: { type: Number, min: 1, max: 90 },
+      endsAt:          { type: Date },
+    },
+
     // ── Ratings (denormalised)
     rating:      { type: Number, default: 0, min: 0, max: 5 },
     reviewCount: { type: Number, default: 0, min: 0 },

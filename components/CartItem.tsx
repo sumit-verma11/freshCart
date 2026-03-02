@@ -9,9 +9,10 @@ import { useCartStore } from "@/store/cart";
 interface CartItemProps {
   item: IClientCartItem;
   isUnavailable?: boolean;
+  lowStockCount?: number; // show "Only N left!" pill when > 0 and <= 5
 }
 
-export default function CartItem({ item, isUnavailable = false }: CartItemProps) {
+export default function CartItem({ item, isUnavailable = false, lowStockCount }: CartItemProps) {
   const { updateQuantity, removeItem } = useCartStore();
   const discount  = calculateDiscount(item.mrp, item.sellingPrice);
   const lineTotal = item.sellingPrice * item.quantity;
@@ -45,6 +46,13 @@ export default function CartItem({ item, isUnavailable = false }: CartItemProps)
           <div className="inline-flex items-center gap-1 text-xs text-danger font-semibold
                           bg-red-50 border border-red-200 rounded-full px-2 py-0.5 mb-1.5">
             <AlertTriangle className="w-3 h-3" /> No longer available
+          </div>
+        )}
+        {/* Low stock badge */}
+        {!isUnavailable && lowStockCount !== undefined && lowStockCount > 0 && lowStockCount <= 5 && (
+          <div className="inline-flex items-center gap-1 text-xs text-amber-700 font-semibold
+                          bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5 mb-1.5">
+            Only {lowStockCount} left!
           </div>
         )}
 
