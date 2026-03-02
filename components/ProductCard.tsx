@@ -2,11 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingCart, Leaf, Star, Minus, Plus, Heart, Flame, Sparkles } from "lucide-react";
+import { ShoppingCart, Leaf, Star, Minus, Plus, Heart, Flame, Sparkles, RotateCcw } from "lucide-react";
 import { ICategory, IProduct } from "@/types";
 import { formatPrice, calculateDiscount } from "@/lib/utils";
 import { useCartStore } from "@/store/cart";
 import { useWishlistStore } from "@/store/wishlist";
+import { useUserActivity } from "@/store/userActivity";
 import { trackAddToCart, trackWishlistAdd, trackWishlistRemove } from "@/lib/analytics";
 import toast from "react-hot-toast";
 
@@ -17,6 +18,7 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const { items, addItem, updateQuantity } = useCartStore();
   const { toggle, has } = useWishlistStore();
+  const { hasOrdered, daysSinceOrder } = useUserActivity();
 
   const v = product.variants[0];
   const discount = v ? calculateDiscount(v.mrp, v.sellingPrice) : 0;
@@ -28,6 +30,10 @@ export default function ProductCard({ product }: ProductCardProps) {
     (i) => i.productId === product._id.toString() && i.variantSku === v?.sku
   );
   const qty = cartItem?.quantity ?? 0;
+
+  const pid = product._id.toString();
+  const reordered = hasOrdered(pid);
+  const daysAgo = daysSinceOrder(pid);
 
   const categoryName =
     product.category !== null &&
@@ -53,7 +59,12 @@ export default function ProductCard({ product }: ProductCardProps) {
     });
     if (qty === 0) {
       toast.success(`${product.name} added to cart`);
-      trackAddToCart(product._id.toString(), product.name, v.sellingPrice, 1);
+      trackAddToCart(pid, product.name, v.sellingPrice, 1);
+      fetch("/api/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: pid, event: "cart" }),
+      }).catch(() => {});
     }
   }
 
@@ -116,6 +127,12 @@ export default function ProductCard({ product }: ProductCardProps) {
 
           {/* Badges (top-left) */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
+            {reordered && (
+              <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5
+                               rounded-full bg-green-500 text-white">
+                <RotateCcw className="w-3 h-3" /> Re-order
+              </span>
+            )}
             {product.isOrganic && (
               <span className="badge-organic flex items-center gap-1">
                 <Leaf className="w-3 h-3" /> Organic
@@ -174,6 +191,11 @@ export default function ProductCard({ product }: ProductCardProps) {
               <span className="price-current text-base">{formatPrice(effectivePrice)}</span>
               {v && v.sellingPrice < v.mrp && (
                 <span className="price-original text-xs ml-1.5">{formatPrice(v.mrp)}</span>
+              )}
+              {daysAgo !== null && (
+                <p className="text-[10px] text-green-600 font-medium mt-0.5">
+                  {daysAgo === 0 ? "Ordered today" : `Ordered ${daysAgo}d ago`}
+                </p>
               )}
             </div>
 

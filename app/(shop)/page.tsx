@@ -7,6 +7,8 @@ import { connectDB } from "@/lib/mongoose";
 import Category from "@/models/Category";
 import AnimatedHeroText from "./_components/AnimatedHeroText";
 import ShopSection, { CategoryItem } from "@/components/ShopSection";
+import HomepageRecentlyViewed from "@/components/HomepageRecentlyViewed";
+import JustForYou from "@/components/JustForYou";
 
 // ─── Server data fetch ────────────────────────────────────────────────────────
 
@@ -181,6 +183,9 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* ── Recently viewed (client, reads localStorage) ─────────────────────── */}
+      <HomepageRecentlyViewed />
+
       {/* ── Shop section (categories + filters + product grid) ───────────────── */}
       <div id="shop">
         <Suspense
@@ -217,6 +222,11 @@ export default async function HomePage() {
         >
           <ShopSection initialCategories={categories} />
         </Suspense>
+      </div>
+
+      {/* ── Just For You personalised section ───────────────────────────────── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-4">
+        <JustForYou />
       </div>
 
       {/* ── Promo banner ─────────────────────────────────────────────────────── */}

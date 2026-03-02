@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Search, SlidersHorizontal, X, Clock, TrendingUp } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import { ProductCardSkeleton, ProductGridSkeleton } from "@/components/Skeleton";
+import { useUserActivity } from "@/store/userActivity";
 import { IProduct } from "@/types";
 import { trackSearch } from "@/lib/analytics";
 
@@ -42,6 +43,8 @@ function SearchContent() {
 
   const initialQuery = searchParams.get("q") ?? "";
   const initialSort  = searchParams.get("sort") ?? "createdAt:desc";
+
+  const { hasOrdered } = useUserActivity();
 
   const [input, setInput]       = useState(initialQuery);
   const [query, setQuery]       = useState(initialQuery);
@@ -219,12 +222,18 @@ function SearchContent() {
         </div>
       )}
 
-      {/* Results */}
+      {/* Results — previously ordered items bubble to top */}
       {!loading && query && products.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {products.map((p) => (
-            <ProductCard key={p._id.toString()} product={p} />
-          ))}
+          {[...products]
+            .sort((a, b) => {
+              const aOrdered = hasOrdered(a._id.toString()) ? 1 : 0;
+              const bOrdered = hasOrdered(b._id.toString()) ? 1 : 0;
+              return bOrdered - aOrdered;
+            })
+            .map((p) => (
+              <ProductCard key={p._id.toString()} product={p} />
+            ))}
         </div>
       )}
 

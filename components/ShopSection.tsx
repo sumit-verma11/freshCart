@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { SlidersHorizontal, X, ChevronRight, Leaf, RotateCcw, MapPin } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
 import { usePincodeStore } from "@/store/pincode";
+import { useUserActivity } from "@/store/userActivity";
 import { IProduct } from "@/types";
 import { formatPrice } from "@/lib/utils";
 
@@ -268,6 +269,7 @@ export default function ShopSection({ initialCategories }: Props) {
   const router       = useRouter();
   const searchParams = useSearchParams();
   const { info: pincodeInfo } = usePincodeStore();
+  const { preferredCategoryIds } = useUserActivity();
 
   // Init search from URL param
   const [searchInput, setSearchInput]   = useState(searchParams.get("search") ?? "");
@@ -375,6 +377,14 @@ export default function ShopSection({ initialCategories }: Props) {
     filters.organicOnly,
   ].filter(Boolean).length;
 
+  // Reorder categories: preferred ones float to the front
+  const orderedCategories = preferredCategoryIds.length > 0
+    ? [
+        ...initialCategories.filter((c) => preferredCategoryIds.includes(c._id)),
+        ...initialCategories.filter((c) => !preferredCategoryIds.includes(c._id)),
+      ]
+    : initialCategories;
+
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
@@ -393,7 +403,7 @@ export default function ShopSection({ initialCategories }: Props) {
         >
           🛒 All
         </button>
-        {initialCategories.map((cat) => (
+        {orderedCategories.map((cat) => (
           <button
             key={cat._id}
             onClick={() => updateFilter({ category: cat._id, subcategory: "" })}

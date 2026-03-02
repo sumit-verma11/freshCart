@@ -11,8 +11,9 @@ import { ICategory, IProduct, INutritionFacts } from "@/types";
 import ImageGallery   from "../_components/ImageGallery";
 import ProductActions, { SerializedProduct } from "../_components/ProductActions";
 import ProductTabs    from "../_components/ProductTabs";
-import RelatedCarousel from "../_components/RelatedCarousel";
-import RecentlyViewed from "../_components/RecentlyViewed";
+import RelatedCarousel  from "../_components/RelatedCarousel";
+import RecentlyViewed  from "../_components/RecentlyViewed";
+import BoughtTogether  from "@/components/BoughtTogether";
 
 // ─── Types (plain after JSON serialisation) ───────────────────────────────────
 
@@ -271,6 +272,9 @@ export default async function ProductPage({
         title="You might also like"
         viewAllHref={category ? `/?category=${category._id}` : undefined}
       />
+
+      {/* ── Frequently bought together ─────────────────────────────────────── */}
+      <BoughtTogether productId={product._id} />
 
       {/* ── Recently viewed (reads + writes localStorage) ─────────────────── */}
       <RecentlyViewed currentProductId={product._id} />
