@@ -6,7 +6,7 @@ import {
 import { connectDB } from "@/lib/mongoose";
 import Category from "@/models/Category";
 import AnimatedHeroText from "./_components/AnimatedHeroText";
-import { ClaimOfferButton, ClaimOfferLink } from "./_components/ClaimOfferButton";
+import { ClaimOfferButton, ClaimOfferLink, ClaimOfferHeroLink } from "./_components/ClaimOfferButton";
 import ShopSection, { CategoryItem } from "@/components/ShopSection";
 import HomepageRecentlyViewed from "@/components/HomepageRecentlyViewed";
 import JustForYou from "@/components/JustForYou";
@@ -84,14 +84,7 @@ export default async function HomePage() {
                 >
                   Shop Now <ArrowRight className="w-4 h-4" />
                 </Link>
-                <Link
-                  href="/register"
-                  className="inline-flex items-center gap-2 border-2 border-white/60 text-white
-                             font-semibold px-7 py-3.5 rounded-xl hover:bg-white/10
-                             active:scale-95 transition-all duration-200"
-                >
-                  Get ₹100 Off →
-                </Link>
+                <ClaimOfferHeroLink />
               </div>
 
               {/* Social proof */}

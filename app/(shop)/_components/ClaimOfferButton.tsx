@@ -37,3 +37,20 @@ export function ClaimOfferLink() {
     </Link>
   );
 }
+
+/** Matches the ghost/outline style of the hero "Get ₹100 Off →" button */
+export function ClaimOfferHeroLink() {
+  const { status } = useSession();
+  const href = status === "authenticated" ? "#shop" : "/register";
+
+  return (
+    <Link
+      href={href}
+      className="inline-flex items-center gap-2 border-2 border-white/60 text-white
+                 font-semibold px-7 py-3.5 rounded-xl hover:bg-white/10
+                 active:scale-95 transition-all duration-200"
+    >
+      {status === "authenticated" ? "Shop Now →" : "Get ₹100 Off →"}
+    </Link>
+  );
+}

@@ -304,14 +304,15 @@ export default function ShopSection({ initialCategories }: Props) {
     return () => clearTimeout(searchTimer.current);
   }, [searchInput]);
 
-  // Sync URL search param on mount (when URL has ?search=)
+  // Sync URL params whenever they change (covers Navbar category links + search)
   useEffect(() => {
-    const q = searchParams.get("search");
-    if (q && q !== searchInput) { setSearchInput(q); setDSearch(q); }
-    const cat = searchParams.get("category");
-    if (cat) setFilters((f) => ({ ...f, category: cat }));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const q   = searchParams.get("search") ?? "";
+    const cat = searchParams.get("category") ?? "";
+    setSearchInput(q);
+    setDSearch(q);
+    setFilters((f) => ({ ...f, category: cat, subcategory: "" }));
+    setPage(1);
+  }, [searchParams]);
 
   // Load subcategories when category changes
   useEffect(() => {
