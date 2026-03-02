@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FreshCart – Project Guide</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a1a; background: #fff; font-size: 14px; line-height: 1.6; }
+
+  .cover { background: linear-gradient(135deg, #1A6B3A 0%, #0E4520 100%); color: white; padding: 60px 40px; text-align: center; page-break-after: always; }
+  .cover h1 { font-size: 38px; font-weight: 800; }
+  .cover .sub { font-size: 15px; opacity: 0.85; margin-top: 8px; }
+  .cover .pills { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 24px; }
+  .cover .pill { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); padding: 5px 14px; border-radius: 999px; font-size: 12px; }
+
+  .section { padding: 32px 40px; }
+  .section h2 { font-size: 20px; font-weight: 700; color: #1A6B3A; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; margin-bottom: 18px; }
+  .section h3 { font-size: 15px; font-weight: 700; color: #0E4520; margin: 18px 0 8px; }
+  .section p { margin-bottom: 10px; color: #374151; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin: 16px 0; }
+
+  .card { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 14px 16px; }
+  .card .title { font-weight: 700; color: #166534; font-size: 13px; margin-bottom: 5px; }
+  .card ul { padding-left: 16px; font-size: 12.5px; color: #374151; }
+  .card li { margin-bottom: 3px; }
+
+  .code-block { background: #1e1e2e; color: #cdd6f4; font-family: 'Courier New', monospace; font-size: 12px; padding: 14px 16px; border-radius: 8px; margin: 10px 0; white-space: pre; overflow-x: auto; line-height: 1.5; }
+  .code-block .kw { color: #cba6f7; }
+  .code-block .str { color: #a6e3a1; }
+  .code-block .cmt { color: #6c7086; }
+  .code-block .fn { color: #89b4fa; }
+
+  code { background: #f3f4f6; padding: 1px 5px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 12px; color: #1A6B3A; }
+
+  .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+  .flow .step { background: #1A6B3A; color: white; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+  .flow .arrow { color: #9ca3af; font-size: 18px; }
+
+  .file-tree { font-family: 'Courier New', monospace; font-size: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; line-height: 1.8; }
+  .file-tree .dir { color: #1A6B3A; font-weight: 700; }
+  .file-tree .file { color: #374151; }
+  .file-tree .note { color: #9ca3af; font-size: 11px; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-blue { background: #dbeafe; color: #1d4ed8; }
+  .badge-orange { background: #ffedd5; color: #9a3412; }
+  .badge-purple { background: #f3e8ff; color: #6b21a8; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  th { background: #1A6B3A; color: white; padding: 8px 12px; text-align: left; }
+  td { padding: 8px 12px; border-bottom: 1px solid #e5e7eb; }
+  tr:nth-child(even) td { background: #f9fafb; }
+
+  .tip { background: #fffbeb; border-left: 4px solid #F5A623; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 10px 0; font-size: 13px; color: #92400e; }
+
+  .footer { text-align: center; font-size: 11px; color: #9ca3af; padding: 20px; border-top: 1px solid #e5e7eb; }
+
+  @media print {
+    .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .code-block { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .section { page-break-inside: auto; }
+    h2, h3 { page-break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div style="font-size:52px;margin-bottom:14px">🛒</div>
+  <h1>FreshCart</h1>
+  <p class="sub">Full-Stack Grocery Delivery Platform</p>
+  <p class="sub">Complete Project Guide — Architecture · Features · Setup · Usage</p>
+  <div class="pills">
+    <span class="pill">Next.js 14 App Router</span>
+    <span class="pill">TypeScript</span>
+    <span class="pill">MongoDB + Mongoose</span>
+    <span class="pill">NextAuth v4</span>
+    <span class="pill">Tailwind CSS</span>
+    <span class="pill">Zustand</span>
+    <span class="pill">Framer Motion</span>
+    <span class="pill">PWA</span>
+  </div>
+</div>
+
+<!-- OVERVIEW -->
+<div class="section">
+  <h2>1. Project Overview</h2>
+  <p>FreshCart is a full-stack grocery e-commerce platform built with Next.js 14. It has a customer-facing storefront, a full admin dashboard, user authentication, order management, real-time stock updates, and PWA capabilities with push notifications.</p>
+
+  <div class="grid3">
+    <div class="card">
+      <div class="title">🛍️ Shop Features</div>
+      <ul>
+        <li>Product browsing with filters</li>
+        <li>Infinite scroll</li>
+        <li>Cart with sidebar</li>
+        <li>Checkout + order placement</li>
+        <li>Order history with confetti</li>
+        <li>Pincode delivery check</li>
+        <li>Command palette (⌘K)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="title">⚙️ Admin Features</div>
+      <ul>
+        <li>Dashboard with live stats</li>
+        <li>Analytics with charts</li>
+        <li>Product CRUD + image fix</li>
+        <li>Order management + status</li>
+        <li>Category management</li>
+        <li>Pincode management</li>
+        <li>Push notification sender</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="title">🔐 Auth &amp; UX</div>
+      <ul>
+        <li>Email/password auth (NextAuth)</li>
+        <li>Role-based access control</li>
+        <li>Dark / Light / System theme</li>
+        <li>Shimmer skeleton loading</li>
+        <li>Animated empty states</li>
+        <li>PWA + Push Notifications</li>
+        <li>Mobile BottomNav</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- TECH STACK -->
+<div class="section">
+  <h2>2. Tech Stack</h2>
+  <table>
+    <tr><th>Category</th><th>Technology</th><th>Purpose</th></tr>
+    <tr><td>Framework</td><td>Next.js 14 (App Router)</td><td>SSR, RSC, API Routes, Image Optimization</td></tr>
+    <tr><td>Language</td><td>TypeScript</td><td>Type safety, better DX</td></tr>
+    <tr><td>Styling</td><td>Tailwind CSS + CSS Variables</td><td>Utility-first, dark mode theming</td></tr>
+    <tr><td>Database</td><td>MongoDB + Mongoose</td><td>Product, order, user, category storage</td></tr>
+    <tr><td>Auth</td><td>NextAuth v4</td><td>Credentials auth, JWT sessions, RBAC</td></tr>
+    <tr><td>State</td><td>Zustand</td><td>Cart store, sidebar state</td></tr>
+    <tr><td>Animation</td><td>Framer Motion v12</td><td>Page transitions, spring physics, AnimatePresence</td></tr>
+    <tr><td>Validation</td><td>Zod</td><td>API input validation schemas</td></tr>
+    <tr><td>UI Extras</td><td>lucide-react, react-hot-toast, canvas-confetti</td><td>Icons, notifications, celebration</td></tr>
+    <tr><td>PWA</td><td>Service Worker + Web Push</td><td>Offline support, push notifications</td></tr>
+  </table>
+</div>
+
+<!-- PROJECT STRUCTURE -->
+<div class="section">
+  <h2>3. Project Structure</h2>
+  <div class="file-tree">
+<span class="dir">freshcart/</span>
+├── <span class="dir">app/</span>
+│   ├── <span class="dir">(shop)/</span>          <span class="note">← customer storefront</span>
+│   │   ├── layout.tsx         <span class="note">← Navbar + CartSidebar + CommandPalette</span>
+│   │   ├── page.tsx           <span class="note">← homepage with hero + ShopSection</span>
+│   │   ├── orders/page.tsx    <span class="note">← order history + confetti</span>
+│   │   └── products/[slug]/   <span class="note">← product detail page</span>
+│   ├── <span class="dir">(admin)/</span>         <span class="note">← admin panel (role-protected)</span>
+│   │   ├── layout.tsx         <span class="note">← session check + AdminSidebar</span>
+│   │   ├── admin/dashboard/   <span class="note">← stats, recent orders, low stock</span>
+│   │   ├── admin/analytics/   <span class="note">← charts, funnels, top products</span>
+│   │   ├── admin/products/    <span class="note">← product list, add, edit</span>
+│   │   ├── admin/orders/      <span class="note">← order list + status updates</span>
+│   │   ├── admin/categories/  <span class="note">← category CRUD</span>
+│   │   ├── admin/pincodes/    <span class="note">← delivery area management</span>
+│   │   └── admin/push/        <span class="note">← send push notifications</span>
+│   ├── <span class="dir">(auth)/</span>          <span class="note">← login + register pages</span>
+│   ├── <span class="dir">api/</span>             <span class="note">← all API route handlers</span>
+│   │   ├── auth/              <span class="note">← NextAuth + register</span>
+│   │   ├── products/          <span class="note">← GET products with filters</span>
+│   │   ├── orders/            <span class="note">← place + view orders</span>
+│   │   ├── admin/             <span class="note">← admin-only CRUD APIs</span>
+│   │   └── stock/             <span class="note">← SSE real-time stock stream</span>
+│   ├── globals.css            <span class="note">← CSS vars, dark mode, component classes</span>
+│   └── layout.tsx             <span class="note">← ThemeProvider + SessionProvider + Toaster</span>
+├── <span class="dir">components/</span>
+│   ├── Navbar.tsx             <span class="note">← search, cart, theme toggle, user menu</span>
+│   ├── CartSidebar.tsx        <span class="note">← glassmorphism slide-in cart</span>
+│   ├── ProductCard.tsx        <span class="note">← card with add/qty, tooltips</span>
+│   ├── ShopSection.tsx        <span class="note">← product grid + infinite scroll</span>
+│   ├── CommandPalette.tsx     <span class="note">← ⌘K search modal</span>
+│   ├── Footer.tsx             <span class="note">← newsletter + links + contact</span>
+│   ├── Skeleton.tsx           <span class="note">← shimmer loading states</span>
+│   ├── Tooltip.tsx            <span class="note">← hover tooltip (4 directions)</span>
+│   ├── ThemeToggle.tsx        <span class="note">← sun/moon animated toggle</span>
+│   └── BackToTop.tsx          <span class="note">← scroll-to-top button</span>
+├── <span class="dir">lib/</span>
+│   ├── mongoose.ts            <span class="note">← DB connection with global cache</span>
+│   ├── auth.ts                <span class="note">← NextAuth authOptions config</span>
+│   ├── theme.tsx              <span class="note">← ThemeProvider context</span>
+│   └── utils.ts               <span class="note">← formatPrice, cn() helpers</span>
+├── <span class="dir">models/</span>             <span class="note">← Mongoose schemas</span>
+│   ├── Product.ts
+│   ├── Order.ts
+│   ├── User.ts
+│   ├── Category.ts
+│   └── Pincode.ts
+├── <span class="dir">store/</span>
+│   ├── cart.ts                <span class="note">← Zustand cart store (persisted)</span>
+│   └── cartSidebar.ts         <span class="note">← sidebar open/close state</span>
+└── tailwind.config.ts         <span class="note">← custom colors, semantic tokens</span>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="section">
+  <h2>4. How It Works — Key Flows</h2>
+
+  <h3>🔐 Authentication Flow</h3>
+  <div class="flow">
+    <span class="step">User submits login form</span>
+    <span class="arrow">→</span>
+    <span class="step">NextAuth CredentialsProvider</span>
+    <span class="arrow">→</span>
+    <span class="step">bcrypt.compare()</span>
+    <span class="arrow">→</span>
+    <span class="step">JWT cookie set</span>
+    <span class="arrow">→</span>
+    <span class="step">Redirect by role</span>
+  </div>
+  <p>Admin users are redirected to <code>/admin/dashboard</code>. Regular users go to the homepage or their requested page.</p>
+
+  <h3>🛒 Cart → Order Flow</h3>
+  <div class="flow">
+    <span class="step">Add to Cart</span>
+    <span class="arrow">→</span>
+    <span class="step">Zustand Store</span>
+    <span class="arrow">→</span>
+    <span class="step">CartSidebar opens</span>
+    <span class="arrow">→</span>
+    <span class="step">Checkout form</span>
+    <span class="arrow">→</span>
+    <span class="step">POST /api/orders</span>
+    <span class="arrow">→</span>
+    <span class="step">MongoDB Order saved</span>
+    <span class="arrow">→</span>
+    <span class="step">Confetti 🎉</span>
+  </div>
+
+  <h3>🔍 Search Flow</h3>
+  <div class="flow">
+    <span class="step">User types</span>
+    <span class="arrow">→</span>
+    <span class="step">300ms debounce</span>
+    <span class="arrow">→</span>
+    <span class="step">GET /api/products?search=…</span>
+    <span class="arrow">→</span>
+    <span class="step">MongoDB $regex query</span>
+    <span class="arrow">→</span>
+    <span class="step">Dropdown results</span>
+  </div>
+
+  <h3>📦 Admin Order Management</h3>
+  <div class="flow">
+    <span class="step">pending</span>
+    <span class="arrow">→</span>
+    <span class="step">confirmed</span>
+    <span class="arrow">→</span>
+    <span class="step">out_for_delivery</span>
+    <span class="arrow">→</span>
+    <span class="step">delivered</span>
+  </div>
+  <p>Admin clicks "→ Confirmed" button in the order detail modal → PATCH <code>/api/admin/orders</code> → MongoDB status updated.</p>
+
+  <h3>🌙 Dark Mode Flow</h3>
+  <div class="flow">
+    <span class="step">ThemeToggle click</span>
+    <span class="arrow">→</span>
+    <span class="step">ThemeProvider updates state</span>
+    <span class="arrow">→</span>
+    <span class="step">Saves to localStorage</span>
+    <span class="arrow">→</span>
+    <span class="step">.dark class on &lt;html&gt;</span>
+    <span class="arrow">→</span>
+    <span class="step">CSS vars switch</span>
+    <span class="arrow">→</span>
+    <span class="step">All dark: classes activate</span>
+  </div>
+</div>
+
+<!-- SETUP GUIDE -->
+<div class="section">
+  <h2>5. Setup &amp; Running Locally</h2>
+
+  <h3>Prerequisites</h3>
+  <ul style="padding-left:20px;margin-bottom:14px">
+    <li>Node.js 18+ and npm</li>
+    <li>MongoDB database (local or MongoDB Atlas free tier)</li>
+    <li>Git</li>
+  </ul>
+
+  <h3>Step 1 — Clone and Install</h3>
+  <div class="code-block"><span class="fn">git</span> clone https://github.com/sumit-verma11/freshCart.git
+<span class="fn">cd</span> freshCart
+<span class="fn">npm</span> install</div>
+
+  <h3>Step 2 — Environment Variables</h3>
+  <p>Create a <code>.env.local</code> file in the project root:</p>
+  <div class="code-block"><span class="cmt"># MongoDB</span>
+MONGODB_URI=<span class="str">mongodb+srv://username:password@cluster.mongodb.net/freshcart</span>
+
+<span class="cmt"># NextAuth</span>
+NEXTAUTH_SECRET=<span class="str">any-long-random-string-here</span>
+NEXTAUTH_URL=<span class="str">http://localhost:3000</span>
+
+<span class="cmt"># Web Push VAPID Keys (generate with: npx web-push generate-vapid-keys)</span>
+VAPID_PUBLIC_KEY=<span class="str">your-public-key</span>
+VAPID_PRIVATE_KEY=<span class="str">your-private-key</span>
+
+<span class="cmt"># Optional: Unsplash for product images</span>
+UNSPLASH_ACCESS_KEY=<span class="str">your-unsplash-api-key</span></div>
+
+  <h3>Step 3 — Seed the Database</h3>
+  <div class="code-block"><span class="fn">npm</span> run seed       <span class="cmt"># seeds products, categories, pincodes, users</span></div>
+  <p>This creates demo accounts:</p>
+  <table>
+    <tr><th>Role</th><th>Email</th><th>Password</th></tr>
+    <tr><td><span class="badge badge-orange">Admin</span></td><td>admin@freshcart.in</td><td>Admin@1234</td></tr>
+    <tr><td><span class="badge badge-blue">User</span></td><td>arjun@example.com</td><td>User@1234</td></tr>
+  </table>
+
+  <h3>Step 4 — Run Development Server</h3>
+  <div class="code-block"><span class="fn">npm</span> run dev</div>
+  <p>App runs at <code>http://localhost:3000</code></p>
+
+  <h3>Build for Production</h3>
+  <div class="code-block"><span class="fn">npm</span> run build
+<span class="fn">npm</span> run start</div>
+</div>
+
+<!-- PAGES GUIDE -->
+<div class="section">
+  <h2>6. Pages &amp; Navigation Guide</h2>
+
+  <h3>Customer Pages</h3>
+  <table>
+    <tr><th>URL</th><th>Page</th><th>What it does</th></tr>
+    <tr><td><code>/</code></td><td>Home / Shop</td><td>Hero banner, product grid, category filters, infinite scroll</td></tr>
+    <tr><td><code>/products/[slug]</code></td><td>Product Detail</td><td>Images, variants, add to cart, allergen/nutrition tooltips</td></tr>
+    <tr><td><code>/orders</code></td><td>My Orders</td><td>Order history, confetti on <code>?order=XXX</code>, animated empty state</td></tr>
+    <tr><td><code>/login</code></td><td>Login</td><td>Email/password sign in, demo credentials shown</td></tr>
+    <tr><td><code>/register</code></td><td>Register</td><td>Sign up with password strength meter</td></tr>
+  </table>
+
+  <h3>Admin Pages (requires admin role)</h3>
+  <table>
+    <tr><th>URL</th><th>Page</th><th>What it does</th></tr>
+    <tr><td><code>/admin/dashboard</code></td><td>Dashboard</td><td>Revenue, order counts, recent orders, low stock alerts</td></tr>
+    <tr><td><code>/admin/analytics</code></td><td>Analytics</td><td>Charts, conversion funnel, top products, inventory health</td></tr>
+    <tr><td><code>/admin/products</code></td><td>Products</td><td>List, search, enable/disable, delete, fix images</td></tr>
+    <tr><td><code>/admin/products/new</code></td><td>Add Product</td><td>Full product form with variants, images, allergens</td></tr>
+    <tr><td><code>/admin/orders</code></td><td>Orders</td><td>All orders, filter by status, update status in modal</td></tr>
+    <tr><td><code>/admin/categories</code></td><td>Categories</td><td>Create/edit categories and subcategories</td></tr>
+    <tr><td><code>/admin/pincodes</code></td><td>Pincodes</td><td>Manage delivery serviceable areas with delivery hours</td></tr>
+    <tr><td><code>/admin/push</code></td><td>Push Notifications</td><td>Send notifications to all or specific users</td></tr>
+  </table>
+</div>
+
+<!-- KEY COMPONENTS -->
+<div class="section">
+  <h2>7. Key Components Explained</h2>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="title">🛒 CartSidebar</div>
+      <ul>
+        <li>Glassmorphism panel slides in from right</li>
+        <li>Spring animation via Framer Motion</li>
+        <li>Reads from Zustand cart store</li>
+        <li>Animated SVG empty state</li>
+        <li>Opens via <code>useCartSidebar().open()</code></li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="title">⌘ CommandPalette</div>
+      <ul>
+        <li>Opens with Cmd+K or Ctrl+K</li>
+        <li>Searches products via API</li>
+        <li>Keyboard navigation (↑↓ Enter Esc)</li>
+        <li>Remembers recent searches</li>
+        <li>Closes on outside click or Esc</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="title">🃏 ProductCard</div>
+      <ul>
+        <li>Spring hover lift animation</li>
+        <li>Add→Qty morphing button</li>
+        <li>Allergen warning badge (🚨)</li>
+        <li>Nutri-score badge (A–E)</li>
+        <li>Tooltip on hover for both</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="title">💀 Skeleton</div>
+      <ul>
+        <li>Shimmer gradient animation (not pulse)</li>
+        <li>Variants: ProductCard, Grid, Detail, Category, Order</li>
+        <li>Uses <code>.skeleton-shimmer</code> CSS class</li>
+        <li>Dark mode aware shimmer colors</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="title">🌙 ThemeToggle</div>
+      <ul>
+        <li>Cycles: light → dark → system</li>
+        <li>Animated Sun/Moon icon swap</li>
+        <li>Persists to localStorage</li>
+        <li>System mode respects OS preference</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="title">💬 Tooltip</div>
+      <ul>
+        <li>Hover/focus triggered</li>
+        <li>4 placements: top/bottom/left/right</li>
+        <li>Framer Motion fade + scale animation</li>
+        <li>Custom max-width support</li>
+        <li>Backdrop blur background</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- API REFERENCE -->
+<div class="section">
+  <h2>8. API Reference</h2>
+  <table>
+    <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+    <tr><td><span class="badge badge-green">GET</span></td><td>/api/products</td><td>Public</td><td>List products with search, category, page filters</td></tr>
+    <tr><td><span class="badge badge-green">GET</span></td><td>/api/products/[slug]</td><td>Public</td><td>Single product by slug</td></tr>
+    <tr><td><span class="badge badge-green">GET</span></td><td>/api/categories</td><td>Public</td><td>All active categories</td></tr>
+    <tr><td><span class="badge badge-green">GET</span></td><td>/api/pincodes/check</td><td>Public</td><td>Check if pincode is serviceable</td></tr>
+    <tr><td><span class="badge badge-blue">POST</span></td><td>/api/orders</td><td>User</td><td>Place a new order</td></tr>
+    <tr><td><span class="badge badge-green">GET</span></td><td>/api/orders</td><td>User</td><td>Get current user's orders</td></tr>
+    <tr><td><span class="badge badge-blue">POST</span></td><td>/api/auth/register</td><td>Public</td><td>Register new user account</td></tr>
+    <tr><td><span class="badge badge-green">GET</span></td><td>/api/stock</td><td>Public</td><td>SSE stream for live stock updates</td></tr>
+    <tr><td><span class="badge badge-orange">PATCH</span></td><td>/api/admin/orders</td><td>Admin</td><td>Update order status</td></tr>
+    <tr><td><span class="badge badge-blue">POST</span></td><td>/api/admin/products</td><td>Admin</td><td>Create new product</td></tr>
+    <tr><td><span class="badge badge-orange">PUT</span></td><td>/api/admin/products</td><td>Admin</td><td>Update product</td></tr>
+    <tr><td><span class="badge badge-purple">DELETE</span></td><td>/api/admin/products</td><td>Admin</td><td>Delete product by ID</td></tr>
+    <tr><td><span class="badge badge-green">GET</span></td><td>/api/admin/analytics</td><td>Admin</td><td>Revenue, order, product analytics</td></tr>
+    <tr><td><span class="badge badge-blue">POST</span></td><td>/api/admin/push</td><td>Admin</td><td>Send push notification</td></tr>
+  </table>
+</div>
+
+<!-- DEPLOYMENT -->
+<div class="section">
+  <h2>9. Deployment (Vercel)</h2>
+
+  <h3>Deploy to Vercel</h3>
+  <ol style="padding-left:20px;margin-bottom:14px">
+    <li>Push code to GitHub (<code>git push origin main</code>)</li>
+    <li>Go to <a href="https://vercel.com">vercel.com</a> → Import Project from GitHub</li>
+    <li>Select the <code>freshCart</code> repo</li>
+    <li>Add all environment variables from <code>.env.local</code> in the Vercel dashboard</li>
+    <li>Click Deploy — Vercel auto-detects Next.js and builds it</li>
+  </ol>
+
+  <div class="tip">
+    ⚠️ Make sure to update <code>NEXTAUTH_URL</code> to your Vercel domain (e.g., <code>https://freshcart.vercel.app</code>) and whitelist the domain in your MongoDB Atlas Network Access settings.
+  </div>
+
+  <h3>MongoDB Atlas (Free Tier)</h3>
+  <ol style="padding-left:20px">
+    <li>Create account at <a href="https://mongodb.com/atlas">mongodb.com/atlas</a></li>
+    <li>Create a free M0 cluster</li>
+    <li>Create a database user with read/write permissions</li>
+    <li>Add <code>0.0.0.0/0</code> to Network Access (allow all IPs for Vercel)</li>
+    <li>Copy the connection string to <code>MONGODB_URI</code></li>
+  </ol>
+</div>
+
+<!-- TROUBLESHOOTING -->
+<div class="section">
+  <h2>10. Common Issues &amp; Fixes</h2>
+  <table>
+    <tr><th>Issue</th><th>Cause</th><th>Fix</th></tr>
+    <tr><td>onSubmit error in Footer</td><td>Event handler in Server Component</td><td>Extract to <code>NewsletterForm.tsx</code> with "use client"</td></tr>
+    <tr><td>Text invisible in dark mode</td><td>Tailwind token using wrong CSS var value</td><td>Check <code>globals.css</code> .dark block, use <code>dark:text-white</code></td></tr>
+    <tr><td>Sidebar always white</td><td><code>bg-dark</code> = white in dark mode via CSS var</td><td>Use <code>bg-gray-900</code> for always-dark elements</td></tr>
+    <tr><td>MongoDB connection error</td><td>Wrong URI or IP not whitelisted</td><td>Check MONGODB_URI and Atlas Network Access</td></tr>
+    <tr><td>NextAuth session undefined</td><td>Missing NEXTAUTH_SECRET</td><td>Add to .env.local, restart server</td></tr>
+    <tr><td>Images not loading</td><td>Domain not in next.config.js</td><td>Add domain to <code>images.remotePatterns</code></td></tr>
+    <tr><td>Push notifications not working</td><td>Missing VAPID keys</td><td>Run <code>npx web-push generate-vapid-keys</code></td></tr>
+  </table>
+</div>
+
+<div class="footer">
+  FreshCart Project Guide · github.com/sumit-verma11/freshCart · Open in browser → File → Print → Save as PDF
+</div>
+</body>
+</html>

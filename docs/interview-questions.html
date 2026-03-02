@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FreshCart – Interview Questions & Theory</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a1a; background: #fff; font-size: 14px; line-height: 1.6; }
+
+  .cover { background: linear-gradient(135deg, #1A6B3A 0%, #0E4520 100%); color: white; padding: 60px 40px; text-align: center; page-break-after: always; }
+  .cover h1 { font-size: 36px; font-weight: 800; margin-bottom: 10px; }
+  .cover .sub { font-size: 16px; opacity: 0.85; margin-bottom: 6px; }
+  .cover .badge { display: inline-block; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); padding: 6px 18px; border-radius: 999px; font-size: 13px; margin-top: 20px; }
+
+  .toc { padding: 40px; page-break-after: always; }
+  .toc h2 { color: #1A6B3A; font-size: 22px; border-bottom: 2px solid #1A6B3A; padding-bottom: 8px; margin-bottom: 20px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin-bottom: 8px; font-size: 14px; }
+  .toc a { color: #1A6B3A; text-decoration: none; }
+
+  .section { padding: 32px 40px; page-break-inside: avoid; }
+  .section-header { background: linear-gradient(135deg, #1A6B3A, #166330); color: white; padding: 14px 20px; border-radius: 10px; margin-bottom: 20px; }
+  .section-header h2 { font-size: 18px; font-weight: 700; }
+  .section-header .num { font-size: 12px; opacity: 0.8; }
+
+  .q-block { margin-bottom: 22px; border-left: 4px solid #1A6B3A; padding-left: 16px; }
+  .q-block .q { font-weight: 700; color: #0E4520; margin-bottom: 6px; font-size: 14px; }
+  .q-block .a { color: #374151; font-size: 13.5px; line-height: 1.7; }
+  .q-block .a code { background: #f3f4f6; padding: 1px 6px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 12px; color: #1A6B3A; }
+  .q-block .a ul, .q-block .a ol { padding-left: 18px; margin-top: 4px; }
+  .q-block .a li { margin-bottom: 3px; }
+
+  .tip { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 14px; margin-top: 8px; font-size: 12.5px; color: #166534; }
+  .warn { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px; margin-top: 8px; font-size: 12.5px; color: #92400e; }
+
+  .divider { border: none; border-top: 1px solid #e5e7eb; margin: 24px 0; }
+
+  .footer { text-align: center; font-size: 11px; color: #9ca3af; padding: 20px; border-top: 1px solid #e5e7eb; }
+
+  @media print {
+    .section { page-break-inside: auto; }
+    .q-block { page-break-inside: avoid; }
+    a { color: #1A6B3A; }
+    .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .section-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div style="font-size:48px;margin-bottom:16px">🌿</div>
+  <h1>FreshCart</h1>
+  <p class="sub">Full-Stack Grocery Delivery App</p>
+  <p class="sub">Interview Questions &amp; Theory Guide</p>
+  <div class="badge">Next.js 14 · TypeScript · MongoDB · Tailwind CSS · NextAuth</div>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+  <h2>Table of Contents</h2>
+  <ol>
+    <li><a href="#s1">Next.js &amp; App Router</a></li>
+    <li><a href="#s2">TypeScript</a></li>
+    <li><a href="#s3">Tailwind CSS &amp; Dark Mode</a></li>
+    <li><a href="#s4">MongoDB &amp; Mongoose</a></li>
+    <li><a href="#s5">NextAuth Authentication</a></li>
+    <li><a href="#s6">State Management (Zustand)</a></li>
+    <li><a href="#s7">React Patterns &amp; Performance</a></li>
+    <li><a href="#s8">API Design &amp; REST</a></li>
+    <li><a href="#s9">Framer Motion &amp; Animations</a></li>
+    <li><a href="#s10">PWA &amp; Push Notifications</a></li>
+    <li><a href="#s11">Security &amp; Best Practices</a></li>
+    <li><a href="#s12">System Design Questions</a></li>
+  </ol>
+</div>
+
+<!-- SECTION 1 -->
+<div class="section" id="s1">
+  <div class="section-header"><div class="num">Section 01</div><h2>Next.js 14 &amp; App Router</h2></div>
+
+  <div class="q-block">
+    <div class="q">Q1. What is the difference between App Router and Pages Router in Next.js?</div>
+    <div class="a">
+      <ul>
+        <li><strong>App Router</strong> (used in FreshCart) uses the <code>app/</code> directory and enables React Server Components (RSC), server-side data fetching inside components, and nested layouts.</li>
+        <li><strong>Pages Router</strong> uses <code>pages/</code>, relies on <code>getServerSideProps</code>/<code>getStaticProps</code>, and all components are client-side by default.</li>
+        <li>App Router supports <strong>grouped routes</strong> like <code>(shop)</code>, <code>(admin)</code>, <code>(auth)</code> which organize routes without adding URL segments.</li>
+      </ul>
+      <div class="tip">FreshCart uses <code>(shop)/</code>, <code>(admin)/</code>, <code>(auth)/</code> route groups, each with their own layout (navbar, sidebar, etc.) without polluting the URL.</div>
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q2. What are React Server Components (RSC) and when did you use them in FreshCart?</div>
+    <div class="a">
+      RSC are components that render entirely on the server — no JavaScript sent to the client. They can <strong>directly query databases</strong>, access secrets, and reduce bundle size.<br><br>
+      In FreshCart:
+      <ul>
+        <li><code>app/(admin)/admin/dashboard/page.tsx</code> — directly calls MongoDB with Mongoose to fetch stats</li>
+        <li><code>app/(shop)/layout.tsx</code> — server component that gets session without client-side fetch</li>
+        <li><code>Footer.tsx</code> — static server component (no state, no events)</li>
+      </ul>
+      <div class="warn">RSC cannot use <code>useState</code>, <code>useEffect</code>, event handlers, or browser APIs. Add <code>"use client"</code> at the top of the file when you need them.</div>
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q3. Why was NewsletterForm extracted as a separate client component?</div>
+    <div class="a">
+      The <code>Footer</code> is a Server Component. It had a <code>&lt;form onSubmit={...}&gt;</code> which is an event handler — not allowed in RSC. <br>
+      Solution: extracted the form into <code>NewsletterForm.tsx</code> with <code>"use client"</code> at the top, and imported it into the footer. This keeps the rest of the footer as a lightweight server component while only hydrating the interactive form on the client.
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q4. What is the purpose of <code>loading.tsx</code> and <code>error.tsx</code> in App Router?</div>
+    <div class="a">
+      <ul>
+        <li><code>loading.tsx</code> — automatically wraps the page in a <code>Suspense</code> boundary. Shows a skeleton/spinner while the server component fetches data.</li>
+        <li><code>error.tsx</code> — an error boundary that catches runtime errors and shows a fallback UI with a retry button.</li>
+        <li>FreshCart uses <code>Suspense</code> manually in the Login page around <code>useSearchParams</code> (which requires a boundary in Next.js 14).</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q5. How does route grouping with <code>(folder)</code> work?</div>
+    <div class="a">
+      Parentheses around a folder name create a <strong>Route Group</strong> — the folder name is <em>excluded</em> from the URL path. It's purely an organizational tool.<br>
+      Example: <code>app/(shop)/orders/page.tsx</code> renders at <code>/orders</code>, not <code>/shop/orders</code>.<br>
+      Each group can have its own <code>layout.tsx</code>, allowing completely different layouts (admin sidebar vs shop navbar) without URL nesting.
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q6. What is <code>next/image</code> and why use it?</div>
+    <div class="a">
+      <code>next/image</code> provides automatic image optimization:
+      <ul>
+        <li>Serves WebP/AVIF formats automatically</li>
+        <li>Lazy loads by default</li>
+        <li>Prevents Cumulative Layout Shift (CLS) with <code>width</code>/<code>height</code></li>
+        <li>Resizes images on-demand via Next.js Image Optimization API</li>
+      </ul>
+      FreshCart uses it in <code>ProductCard</code>, admin product tables, and the product detail page with <code>fill</code> + <code>sizes</code> for responsive images.
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2 -->
+<div class="section" id="s2">
+  <div class="section-header"><div class="num">Section 02</div><h2>TypeScript</h2></div>
+
+  <div class="q-block">
+    <div class="q">Q7. What are the benefits of TypeScript in a Next.js project?</div>
+    <div class="a">
+      <ul>
+        <li>Catch type errors at compile time, not runtime</li>
+        <li>IDE autocomplete and IntelliSense for props, API responses, model fields</li>
+        <li>Self-documenting code — interfaces describe shapes clearly</li>
+        <li>Safer refactoring — rename a field and TypeScript shows every usage</li>
+        <li>In FreshCart: Mongoose model types, API response shapes, Zustand store types all typed</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q8. What is <code>as const</code> and when did you use it?</div>
+    <div class="a">
+      <code>as const</code> tells TypeScript to infer the narrowest literal type instead of widening it.<br>
+      Example from <code>Footer.tsx</code>:
+      <code>const QUICK_LINKS = [["About Us", "/about"], ...] as const</code><br>
+      Without <code>as const</code>, TypeScript infers <code>string[][]</code>. With it, it infers the exact tuple types, enabling <code>href</code> to be typed as a specific string literal.
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q9. How do you type a Mongoose document in TypeScript?</div>
+    <div class="a">
+      Define an interface for the document shape, then use it with <code>mongoose.model&lt;IProduct&gt;</code>:
+      <ul>
+        <li>Interface: <code>interface IProduct { name: string; price: number; ... }</code></li>
+        <li>Schema: <code>const ProductSchema = new Schema&lt;IProduct&gt;({...})</code></li>
+        <li>Model: <code>export default mongoose.model&lt;IProduct&gt;("Product", ProductSchema)</code></li>
+      </ul>
+      In API routes, lean queries return <code>LeanDocument&lt;IProduct&gt;</code> which replaces Mongoose document methods with plain objects.
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 3 -->
+<div class="section" id="s3">
+  <div class="section-header"><div class="num">Section 03</div><h2>Tailwind CSS &amp; Dark Mode</h2></div>
+
+  <div class="q-block">
+    <div class="q">Q10. How does Tailwind's dark mode work with <code>class</code> strategy?</div>
+    <div class="a">
+      With <code>darkMode: "class"</code> in <code>tailwind.config.ts</code>, Tailwind adds dark variants only when the <code>.dark</code> class is present on a parent (typically <code>&lt;html&gt;</code>). The app's ThemeProvider:
+      <ul>
+        <li>Reads preference from <code>localStorage["fc-theme"]</code></li>
+        <li>Falls back to <code>prefers-color-scheme</code> media query</li>
+        <li>Applies/removes <code>.dark</code> class on <code>document.documentElement</code></li>
+      </ul>
+      Classes like <code>dark:bg-gray-900</code> only activate when the html element has <code>class="dark"</code>.
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q11. What are CSS Variables and how are they used for theming in FreshCart?</div>
+    <div class="a">
+      CSS Variables (custom properties) are defined in <code>:root</code> and overridden in <code>.dark</code>:
+      <ul>
+        <li><code>--color-surface: #FFFFFF</code> in light → <code>#111827</code> in dark</li>
+        <li><code>--color-muted: #6B7280</code> in light → <code>#9CA3AF</code> in dark</li>
+      </ul>
+      Tailwind tokens like <code>bg-surface</code>, <code>text-dark</code>, <code>text-muted</code> map to these variables, so they <em>automatically adapt</em> without writing <code>dark:</code> variants manually everywhere.
+      <div class="warn">Elements that should <em>always</em> be dark (Footer, AdminSidebar) use explicit <code>bg-gray-950</code>/<code>bg-gray-900</code> instead of CSS-variable tokens.</div>
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q12. What is the JIT compiler in Tailwind and why does it matter?</div>
+    <div class="a">
+      Tailwind's Just-In-Time (JIT) compiler scans your source files and generates <em>only</em> the CSS classes actually used. This means:
+      <ul>
+        <li>Tiny CSS bundle in production (no unused styles)</li>
+        <li>Arbitrary values like <code>bg-white/8</code> (8% opacity) work without config</li>
+        <li>Complex variants like <code>dark:hover:bg-gray-800/50</code> generated on-demand</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4 -->
+<div class="section" id="s4">
+  <div class="section-header"><div class="num">Section 04</div><h2>MongoDB &amp; Mongoose</h2></div>
+
+  <div class="q-block">
+    <div class="q">Q13. How do you avoid multiple MongoDB connections in a Next.js serverless environment?</div>
+    <div class="a">
+      Next.js API routes can run in serverless functions that cold-start repeatedly. Without connection caching, every request opens a new connection, exhausting the pool.<br>
+      FreshCart's <code>lib/mongoose.ts</code> uses a global cache:
+      <ul>
+        <li>Check <code>global.mongoose.conn</code> — if connected, reuse it</li>
+        <li>Check <code>global.mongoose.promise</code> — if connecting, await that promise</li>
+        <li>Only call <code>mongoose.connect()</code> once per process lifetime</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q14. What is <code>.lean()</code> in Mongoose and when should you use it?</div>
+    <div class="a">
+      <code>.lean()</code> returns plain JavaScript objects instead of full Mongoose documents. This means:
+      <ul>
+        <li>No Mongoose methods (<code>.save()</code>, <code>.populate()</code>) on the result</li>
+        <li>Significantly faster — no hydration overhead</li>
+        <li>Results are JSON-serializable directly</li>
+      </ul>
+      Use it for <strong>read-only queries</strong> in API routes where you just need the data for JSON response. FreshCart uses <code>.lean()</code> in all GET endpoints.
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q15. Explain MongoDB aggregation pipeline with an example from FreshCart.</div>
+    <div class="a">
+      The aggregation pipeline processes documents through stages. FreshCart's dashboard uses:
+      <ul>
+        <li><code>$match</code> — filter orders by date range</li>
+        <li><code>$group</code> — sum <code>grandTotal</code> across all matched orders</li>
+        <li><code>$sort</code>, <code>$limit</code> — for top products report</li>
+        <li><code>$lookup</code> — join orders with products for analytics</li>
+      </ul>
+      Example: <code>[{ $match: { placedAt: { $gte: weekStart } } }, { $group: { _id: null, total: { $sum: "$grandTotal" } } }]</code>
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q16. What is the difference between <code>findOne</code>, <code>find</code>, and <code>findById</code>?</div>
+    <div class="a">
+      <ul>
+        <li><code>findById(id)</code> — shorthand for <code>findOne({ _id: id })</code>, returns one document or null</li>
+        <li><code>findOne(filter)</code> — returns the first matching document or null</li>
+        <li><code>find(filter)</code> — returns an array of all matching documents (can be empty)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 5 -->
+<div class="section" id="s5">
+  <div class="section-header"><div class="num">Section 05</div><h2>NextAuth Authentication</h2></div>
+
+  <div class="q-block">
+    <div class="q">Q17. How does the Credentials provider work in NextAuth?</div>
+    <div class="a">
+      The <code>CredentialsProvider</code> takes an <code>authorize</code> async function:
+      <ul>
+        <li>Receives <code>{ email, password }</code> from the sign-in form</li>
+        <li>Looks up the user in MongoDB</li>
+        <li>Compares the submitted password against the bcrypt hash using <code>bcrypt.compare()</code></li>
+        <li>Returns the user object on success, or throws/returns <code>null</code> on failure</li>
+        <li>NextAuth creates a JWT and sets an HTTP-only session cookie</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q18. How do you protect admin routes in Next.js App Router?</div>
+    <div class="a">
+      In <code>app/(admin)/layout.tsx</code>:
+      <ul>
+        <li>Call <code>getServerSession(authOptions)</code> — server-side, no API call needed</li>
+        <li>Check <code>session?.user?.role === "admin"</code></li>
+        <li>If not admin, call <code>redirect("/login")</code></li>
+        <li>This runs on every request to any admin page, acting as a server-side guard</li>
+      </ul>
+      <div class="tip">Never rely only on UI hiding — always enforce authorization on the server side.</div>
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q19. What is the difference between <code>getServerSession</code> and <code>useSession</code>?</div>
+    <div class="a">
+      <ul>
+        <li><code>getServerSession(authOptions)</code> — Server Component / API Route only. Reads the session directly from the JWT cookie without an extra HTTP request. Zero client JS.</li>
+        <li><code>useSession()</code> — Client Component hook. Fetches session via <code>/api/auth/session</code>. Needed when session data is required in interactive UI (e.g., showing user name in Navbar).</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q20. How do you store custom fields (like <code>role</code>) in the NextAuth session?</div>
+    <div class="a">
+      Override the <code>jwt</code> and <code>session</code> callbacks in <code>authOptions</code>:
+      <ul>
+        <li><code>jwt</code> callback: add <code>token.role = user.role</code> when the token is first created</li>
+        <li><code>session</code> callback: copy <code>token.role</code> to <code>session.user.role</code></li>
+        <li>Extend the <code>Session</code> and <code>JWT</code> types via module augmentation in <code>types/next-auth.d.ts</code></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 6 -->
+<div class="section" id="s6">
+  <div class="section-header"><div class="num">Section 06</div><h2>State Management (Zustand)</h2></div>
+
+  <div class="q-block">
+    <div class="q">Q21. Why Zustand over Redux or Context API for the cart?</div>
+    <div class="a">
+      <ul>
+        <li><strong>Zustand</strong>: minimal boilerplate, no Provider wrapping needed, built-in <code>persist</code> middleware for localStorage</li>
+        <li><strong>Redux</strong>: powerful but verbose (actions, reducers, thunks). Overkill for a cart store</li>
+        <li><strong>Context API</strong>: simple but causes all consumers to re-render on any state change. Poor performance for a cart that updates frequently</li>
+      </ul>
+      FreshCart's cart store persists to <code>localStorage</code> via Zustand's <code>persist</code> middleware — cart survives page refresh without any custom code.
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q22. How does the cart sidebar state work with Zustand?</div>
+    <div class="a">
+      A separate <code>store/cartSidebar.ts</code> store holds <code>{ isOpen, open(), close(), toggle() }</code>. Any component (Navbar cart icon, "Add to Cart" button, CartSidebar itself) can call <code>open()</code> or <code>close()</code> without prop drilling. Components only re-render when the slice of state they subscribe to changes.
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 7 -->
+<div class="section" id="s7">
+  <div class="section-header"><div class="num">Section 07</div><h2>React Patterns &amp; Performance</h2></div>
+
+  <div class="q-block">
+    <div class="q">Q23. What is <code>useCallback</code> and why is it used in FreshCart?</div>
+    <div class="a">
+      <code>useCallback(fn, deps)</code> memoizes a function — it only creates a new function reference when dependencies change. Used in FreshCart for:
+      <ul>
+        <li><code>fetchProducts</code> in ShopSection — prevents unnecessary re-renders when passed to <code>useEffect</code></li>
+        <li><code>doSearch</code> in Navbar — debounced search handler doesn't recreate on every keystroke</li>
+        <li><code>fetchOrders</code>, <code>fetchAnalytics</code> — stable references for <code>useEffect</code> deps</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q24. How does infinite scroll work in ShopSection?</div>
+    <div class="a">
+      Uses the <code>IntersectionObserver</code> API:
+      <ul>
+        <li>A sentinel <code>&lt;div&gt;</code> is placed at the bottom of the product grid</li>
+        <li>An <code>IntersectionObserver</code> watches the sentinel</li>
+        <li>When the sentinel enters the viewport, it triggers <code>loadMore()</code></li>
+        <li><code>loadMore</code> appends the next page of products to the existing list</li>
+        <li>When all products are loaded, the sentinel is unmounted (no more triggering)</li>
+      </ul>
+      This is more performant than scroll event listeners as it uses the browser's native intersection detection.
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q25. What is the purpose of <code>AnimatePresence</code> in Framer Motion?</div>
+    <div class="a">
+      <code>AnimatePresence</code> allows components to animate <em>out</em> (exit) when they are removed from the React tree. Without it, components disappear instantly. Used in FreshCart for:
+      <ul>
+        <li>CartSidebar slide-in/out animation</li>
+        <li>CommandPalette fade in/scale out</li>
+        <li>Tooltip fade in/out</li>
+        <li>Empty state animated entrance</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q26. What is <code>useRef</code> and how is it used in the search bar?</div>
+    <div class="a">
+      <code>useRef</code> creates a mutable ref that persists across renders without causing re-renders. In the Navbar search:
+      <ul>
+        <li><code>searchRef</code> — references the search container DOM node to detect outside clicks (close dropdown when user clicks elsewhere)</li>
+        <li><code>searchTimer</code> — stores the debounce timeout ID so it can be cleared on the next keystroke</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 8 -->
+<div class="section" id="s8">
+  <div class="section-header"><div class="num">Section 08</div><h2>API Design &amp; REST</h2></div>
+
+  <div class="q-block">
+    <div class="q">Q27. How are API routes structured in Next.js App Router?</div>
+    <div class="a">
+      API routes are files named <code>route.ts</code> inside the <code>app/api/</code> directory. They export named functions for HTTP methods:
+      <ul>
+        <li><code>export async function GET(request: Request) { ... }</code></li>
+        <li><code>export async function POST(request: Request) { ... }</code></li>
+        <li><code>export async function PATCH(request: Request) { ... }</code></li>
+      </ul>
+      Dynamic segments use <code>[id]/route.ts</code>. FreshCart has routes like <code>/api/products</code>, <code>/api/admin/orders</code>, <code>/api/auth/register</code>.
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q28. How do you implement Server-Sent Events (SSE) in Next.js?</div>
+    <div class="a">
+      FreshCart uses SSE for live stock updates (<code>/api/stock</code>):
+      <ul>
+        <li>Return a <code>ReadableStream</code> with <code>Content-Type: text/event-stream</code></li>
+        <li>Keep the connection open, push <code>data: {...}\n\n</code> messages periodically</li>
+        <li>Client uses <code>new EventSource("/api/stock")</code> to receive updates</li>
+        <li>SSE is simpler than WebSockets for one-way server→client communication</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q29. What is the difference between SSE, WebSockets, and polling?</div>
+    <div class="a">
+      <ul>
+        <li><strong>Polling</strong>: Client repeatedly calls the API (e.g., every 5s). Simple but wasteful</li>
+        <li><strong>SSE (Server-Sent Events)</strong>: One HTTP connection, server pushes data when available. One-directional (server→client). Used in FreshCart for stock updates</li>
+        <li><strong>WebSockets</strong>: Full-duplex, bidirectional. More complex, better for chat/live collaboration</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 9 -->
+<div class="section" id="s9">
+  <div class="section-header"><div class="num">Section 09</div><h2>Framer Motion &amp; Animations</h2></div>
+
+  <div class="q-block">
+    <div class="q">Q30. What is the difference between <code>initial</code>, <code>animate</code>, and <code>exit</code> in Framer Motion?</div>
+    <div class="a">
+      <ul>
+        <li><code>initial</code> — the starting state when the component mounts (e.g., <code>{ opacity: 0, x: -20 }</code>)</li>
+        <li><code>animate</code> — the target state to animate to (e.g., <code>{ opacity: 1, x: 0 }</code>)</li>
+        <li><code>exit</code> — the state to animate to when the component unmounts (only works inside <code>AnimatePresence</code>)</li>
+      </ul>
+      FreshCart's CartSidebar uses <code>initial={{ x: "100%" }}</code> → <code>animate={{ x: 0 }}</code> → <code>exit={{ x: "100%" }}</code> for the slide-in panel.
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q31. What is a spring animation and when would you use it?</div>
+    <div class="a">
+      A spring animation simulates a physical spring — it overshoots slightly and oscillates to the target (like a bouncy button). Configured with <code>stiffness</code> (how tight the spring is) and <code>damping</code> (how quickly it settles).<br>
+      Used in FreshCart for ProductCard hover effects and BackToTop button appearance — feels more natural than linear easing.
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 10 -->
+<div class="section" id="s10">
+  <div class="section-header"><div class="num">Section 10</div><h2>PWA &amp; Push Notifications</h2></div>
+
+  <div class="q-block">
+    <div class="q">Q32. What makes FreshCart a Progressive Web App (PWA)?</div>
+    <div class="a">
+      <ul>
+        <li><strong>Service Worker</strong> (<code>worker/index.ts</code>) — intercepts network requests, enables offline caching</li>
+        <li><strong>Web App Manifest</strong> (<code>public/manifest.json</code>) — defines name, icons, theme color for "Add to Home Screen"</li>
+        <li><strong>HTTPS</strong> — required for service workers (enforced in production)</li>
+        <li><strong>Responsive design</strong> — works on mobile with BottomNav</li>
+        <li><strong>Push Notifications</strong> — Web Push API for order status updates</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q33. How do Web Push Notifications work?</div>
+    <div class="a">
+      <ol>
+        <li>Browser requests notification permission from user</li>
+        <li>Browser subscribes to a push service using the server's VAPID public key → returns a <code>PushSubscription</code> object</li>
+        <li>App saves the subscription to the database (linked to the user)</li>
+        <li>Server uses the VAPID private key + <code>web-push</code> library to send a push message to the browser's push service</li>
+        <li>Push service delivers to the browser even when the app is closed</li>
+        <li>Service Worker's <code>push</code> event fires → shows notification via <code>self.registration.showNotification()</code></li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 11 -->
+<div class="section" id="s11">
+  <div class="section-header"><div class="num">Section 11</div><h2>Security &amp; Best Practices</h2></div>
+
+  <div class="q-block">
+    <div class="q">Q34. How are passwords stored and verified in FreshCart?</div>
+    <div class="a">
+      Passwords are hashed with <code>bcrypt</code>:
+      <ul>
+        <li>Registration: <code>bcrypt.hash(password, 12)</code> — 12 rounds of salting/hashing</li>
+        <li>Login: <code>bcrypt.compare(submitted, storedHash)</code> — timing-safe comparison</li>
+        <li>Plain passwords are never stored in the database</li>
+        <li>bcrypt includes the salt in the hash string, so no separate salt column needed</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q35. What is CSRF and how does NextAuth protect against it?</div>
+    <div class="a">
+      CSRF (Cross-Site Request Forgery) tricks a user's browser into making unauthorized requests. NextAuth protects via:
+      <ul>
+        <li>Uses HTTP-only cookies (inaccessible to JavaScript)</li>
+        <li>Same-site cookie policy prevents cross-origin cookie sending</li>
+        <li>CSRF tokens embedded in sign-in forms</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q36. How do you validate user input in API routes?</div>
+    <div class="a">
+      FreshCart uses <strong>Zod</strong> schemas for input validation:
+      <ul>
+        <li>Define schema: <code>const registerSchema = z.object({ email: z.string().email(), password: z.string().min(6) })</code></li>
+        <li>Parse incoming body: <code>const parsed = registerSchema.safeParse(body)</code></li>
+        <li>If <code>!parsed.success</code>, return 400 with validation errors</li>
+        <li>Never trust client-side validation alone — always validate on the server</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q37. What environment variables does FreshCart need and how are they secured?</div>
+    <div class="a">
+      <ul>
+        <li><code>MONGODB_URI</code> — database connection string (never exposed to client)</li>
+        <li><code>NEXTAUTH_SECRET</code> — secret for signing JWT tokens</li>
+        <li><code>NEXTAUTH_URL</code> — base URL for OAuth callbacks</li>
+        <li><code>VAPID_PUBLIC_KEY</code> / <code>VAPID_PRIVATE_KEY</code> — web push keys</li>
+      </ul>
+      Variables without the <code>NEXT_PUBLIC_</code> prefix are server-only and never sent to the browser. <code>.env.local</code> is git-ignored.
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 12 -->
+<div class="section" id="s12">
+  <div class="section-header"><div class="num">Section 12</div><h2>System Design Questions</h2></div>
+
+  <div class="q-block">
+    <div class="q">Q38. How would you scale FreshCart to handle 100,000 users?</div>
+    <div class="a">
+      <ul>
+        <li><strong>Database</strong>: Add MongoDB Atlas with auto-scaling, proper indexes on <code>slug</code>, <code>category</code>, <code>userId</code></li>
+        <li><strong>Caching</strong>: Use Redis for product listing cache (TTL 5 min), session cache</li>
+        <li><strong>CDN</strong>: Serve images via Cloudinary/Imgix instead of storing in MongoDB. Use Vercel Edge Network for static assets</li>
+        <li><strong>API</strong>: Rate limit endpoints with middleware, add request queuing for peak loads</li>
+        <li><strong>Search</strong>: Replace MongoDB text search with Elasticsearch/Algolia for fast product search</li>
+        <li><strong>Real-time</strong>: Replace SSE polling with WebSockets or a managed service like Pusher</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q39. How is the order flow designed from cart to delivery?</div>
+    <div class="a">
+      <ol>
+        <li>User adds products → Zustand cart store (persisted to localStorage)</li>
+        <li>Checkout → validates pincode serviceability → creates Order document in MongoDB with status <code>pending</code></li>
+        <li>Admin views order in dashboard → updates status: <code>pending → confirmed → out_for_delivery → delivered</code></li>
+        <li>Each status change can trigger a push notification to the user</li>
+        <li>User sees order in <code>/orders</code> page with confetti on successful placement</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="q-block">
+    <div class="q">Q40. What improvements would you make to FreshCart if given more time?</div>
+    <div class="a">
+      <ul>
+        <li>Payment gateway integration (Razorpay/Stripe) instead of COD-only</li>
+        <li>Redis caching for product listings and session data</li>
+        <li>Elasticsearch for full-text product search with typo tolerance</li>
+        <li>Product reviews and ratings system</li>
+        <li>Real-time order tracking with driver location (WebSockets)</li>
+        <li>A/B testing framework for promotions</li>
+        <li>Automated email notifications with React Email + Resend</li>
+        <li>Unit + integration tests with Jest and Playwright E2E tests</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  FreshCart Interview Prep Guide · Built with Next.js 14, TypeScript, MongoDB, Tailwind CSS · Open in browser → File → Print → Save as PDF
+</div>
+</body>
+</html>
