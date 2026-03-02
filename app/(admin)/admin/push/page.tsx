@@ -175,7 +175,7 @@ export default function AdminPushPage() {
                           transition-colors
                           ${targetAll
                             ? "bg-primary text-white border-primary"
-                            : "bg-white text-muted border-border hover:border-primary"}`}
+                            : "bg-white dark:bg-gray-800 text-muted border-border hover:border-primary"}`}
             >
               <Users className="w-4 h-4" /> All Users
             </button>
@@ -185,7 +185,7 @@ export default function AdminPushPage() {
                           transition-colors
                           ${!targetAll
                             ? "bg-primary text-white border-primary"
-                            : "bg-white text-muted border-border hover:border-primary"}`}
+                            : "bg-white dark:bg-gray-800 text-muted border-border hover:border-primary"}`}
             >
               <User className="w-4 h-4" /> Specific User
             </button>

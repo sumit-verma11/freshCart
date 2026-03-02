@@ -55,7 +55,7 @@ function LoginForm() {
 
   return (
     <div className="w-full max-w-md">
-      <div className="bg-white rounded-3xl p-8 shadow-modal border border-border">
+      <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-modal border border-border">
 
         {/* ── Logo ────────────────────────────────────────────────────────── */}
         <div className="flex justify-center mb-8">

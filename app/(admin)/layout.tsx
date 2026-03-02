@@ -11,7 +11,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const initial = name[0]?.toUpperCase() ?? "A";
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
       <AdminSidebar adminName={name} adminInitial={initial} />
 
       {/* Main content — offset by sidebar width on desktop */}

@@ -269,7 +269,7 @@ export default function PincodesPage() {
         <div className="card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-border">
+              <thead className="bg-gray-50 dark:bg-gray-800 border-b border-border">
                 <tr>
                   {["Pincode", "Area", "City", "State", "Delivery", "Status", "Actions"].map((h) => (
                     <th key={h} className="text-left px-5 py-3.5 text-xs font-semibold
@@ -281,7 +281,7 @@ export default function PincodesPage() {
               </thead>
               <tbody className="divide-y divide-border">
                 {pincodes.map((doc) => (
-                  <tr key={doc._id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={doc._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                     <td className="px-5 py-4 font-mono font-bold text-dark">{doc.pincode}</td>
                     <td className="px-5 py-4 text-dark">{doc.area}</td>
                     <td className="px-5 py-4 text-muted">{doc.city}</td>
@@ -322,7 +322,7 @@ export default function PincodesPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-5 py-4 border-t border-border bg-gray-50">
+            <div className="flex items-center justify-between px-5 py-4 border-t border-border bg-gray-50 dark:bg-gray-800/50">
               <p className="text-sm text-muted">Page {page} of {totalPages}</p>
               <div className="flex gap-2">
                 <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}

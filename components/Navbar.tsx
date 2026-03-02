@@ -261,8 +261,9 @@ export default function Navbar() {
                     onFocus={() => searchInput.trim() && setSearchOpen(true)}
                     placeholder="Search vegetables, fruits, dairy... (⌘K)"
                     className="w-full pl-10 pr-20 py-2.5 rounded-xl border border-border bg-gray-50
+                               dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400
                                text-sm focus:outline-none focus:ring-2 focus:ring-primary/30
-                               focus:border-primary focus:bg-white transition-all"
+                               focus:border-primary focus:bg-white dark:focus:bg-gray-800 transition-all"
                   />
                   <span className="absolute right-3.5 top-1/2 -translate-y-1/2 hidden lg:flex items-center gap-0.5
                                    text-[10px] text-muted bg-gray-100 px-1.5 py-0.5 rounded font-mono pointer-events-none">
@@ -503,8 +504,9 @@ export default function Navbar() {
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   placeholder="Search groceries..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border text-sm
-                             focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border bg-gray-50
+                             dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400
+                             text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                 />
               </div>
             </form>

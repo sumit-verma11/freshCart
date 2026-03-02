@@ -349,7 +349,7 @@ export default function ProductForm({ initialData, productId }: Props) {
           </div>
 
           {variants.map((v, idx) => (
-            <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-gray-50 rounded-xl p-3">
+            <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-gray-50 dark:bg-gray-800 rounded-xl p-3">
               <input required className="input py-2 text-sm col-span-2" placeholder="500"
                 value={v.size} onChange={(e) => updateVariant(idx, "size", e.target.value)} />
               <select className="input py-2 text-sm col-span-2" value={v.unit}
@@ -475,7 +475,7 @@ export default function ProductForm({ initialData, productId }: Props) {
               {pincodes.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {pincodes.map((p) => (
-                    <span key={p} className="flex items-center gap-1.5 bg-gray-100 text-dark text-xs
+                    <span key={p} className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 text-dark text-xs
                                              font-mono font-semibold px-3 py-1.5 rounded-full">
                       {p}
                       <button type="button" onClick={() => setPincodes((prev) => prev.filter((x) => x !== p))}>

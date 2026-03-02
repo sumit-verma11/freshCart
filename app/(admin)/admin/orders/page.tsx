@@ -175,7 +175,7 @@ export default function OrdersPage() {
               className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-colors
                           ${statusFilter === value
                             ? "bg-primary text-white"
-                            : "bg-white border border-border text-muted hover:text-dark"}`}
+                            : "bg-white dark:bg-gray-800 border border-border text-muted hover:text-dark dark:hover:bg-gray-700"}`}
             >
               {label}
             </button>
@@ -198,7 +198,7 @@ export default function OrdersPage() {
         <div className="card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-border">
+              <thead className="bg-gray-50 dark:bg-gray-800 border-b border-border">
                 <tr>
                   {["Order #", "Customer", "Items", "Total", "Status", "Date", "Actions"].map((h) => (
                     <th key={h} className="text-left px-5 py-3.5 text-xs font-semibold
@@ -212,7 +212,7 @@ export default function OrdersPage() {
                 {visible.map((order) => {
                   const StatusIcon = STATUS_ICONS[order.status];
                   return (
-                    <tr key={order._id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={order._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                       <td className="px-5 py-4 font-mono font-bold text-dark text-sm">
                         #{order.orderNumber}
                       </td>
@@ -253,7 +253,7 @@ export default function OrdersPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-5 py-4 border-t border-border bg-gray-50">
+            <div className="flex items-center justify-between px-5 py-4 border-t border-border bg-gray-50 dark:bg-gray-800/50">
               <p className="text-sm text-muted">Page {page} of {totalPages}</p>
               <div className="flex gap-2">
                 <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
@@ -270,7 +270,7 @@ export default function OrdersPage() {
       {selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
           onClick={(e) => { if (e.target === e.currentTarget) setSelected(null); }}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             {/* Modal header */}
             <div className="flex items-center justify-between p-6 border-b border-border">
               <div>
@@ -335,7 +335,7 @@ export default function OrdersPage() {
                 <p className="text-xs font-semibold text-muted uppercase tracking-wide mb-3">Items</p>
                 <div className="space-y-2">
                   {selected.items.map((item, i) => (
-                    <div key={i} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+                    <div key={i} className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded-xl px-4 py-3">
                       <div>
                         <p className="text-sm font-medium text-dark">{item.name}</p>
                         <p className="text-xs text-muted font-mono">{item.variantSku} × {item.qty}</p>
@@ -347,7 +347,7 @@ export default function OrdersPage() {
               </div>
 
               {/* Financials */}
-              <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 space-y-2">
                 <div className="flex justify-between text-sm text-muted">
                   <span>Total MRP</span><span>{formatPrice(selected.totalMRP)}</span>
                 </div>

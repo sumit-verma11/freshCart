@@ -101,7 +101,7 @@ export default function RegisterPage() {
 
   return (
     <div className="w-full max-w-md">
-      <div className="bg-white rounded-3xl p-8 shadow-modal border border-border">
+      <div className="bg-white dark:bg-gray-900 rounded-3xl p-8 shadow-modal border border-border">
 
         {/* ── Logo ────────────────────────────────────────────────────────── */}
         <div className="flex justify-center mb-8">
@@ -207,7 +207,7 @@ export default function RegisterPage() {
             {/* Strength bar */}
             {form.password.length > 0 && (
               <div className="mt-2 space-y-1">
-                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-300 ${strength.color} ${strength.width}`}
                   />

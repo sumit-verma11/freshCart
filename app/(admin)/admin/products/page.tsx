@@ -167,7 +167,7 @@ export default function AdminProductsPage() {
       {/* Fix-images progress modal */}
       {fixProgress && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-modal w-full max-w-md p-6 space-y-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-modal w-full max-w-md p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="font-bold text-dark text-lg flex items-center gap-2">
                 <ImageIcon className="w-5 h-5 text-primary" /> Fix All Images
@@ -188,7 +188,7 @@ export default function AdminProductsPage() {
                 <span>{fixProgress.done} / {fixProgress.total} products</span>
                 <span>{Math.round((fixProgress.done / fixProgress.total) * 100)}%</span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+              <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
                 <div
                   className="h-full bg-primary rounded-full transition-all duration-300"
                   style={{ width: `${(fixProgress.done / fixProgress.total) * 100}%` }}
@@ -297,7 +297,7 @@ export default function AdminProductsPage() {
         <div className="card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-border">
+              <thead className="bg-gray-50 dark:bg-gray-800 border-b border-border">
                 <tr>
                   {["Product", "Category", "Price", "Stock", "Available", "Actions"].map((h) => (
                     <th key={h} className="text-left px-5 py-3.5 text-xs font-semibold
@@ -311,7 +311,7 @@ export default function AdminProductsPage() {
                 {products.map((product) => {
                   const v0 = product.variants[0];
                   return (
-                    <tr key={product._id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={product._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                       {/* Product */}
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
@@ -423,7 +423,7 @@ export default function AdminProductsPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-5 py-4 border-t border-border bg-gray-50">
+            <div className="flex items-center justify-between px-5 py-4 border-t border-border bg-gray-50 dark:bg-gray-800/50">
               <p className="text-sm text-muted">Page {page} of {totalPages}</p>
               <div className="flex gap-2">
                 <button

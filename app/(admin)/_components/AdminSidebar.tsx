@@ -105,7 +105,7 @@ export default function AdminSidebar({ adminName, adminInitial }: Props) {
       {/* Mobile hamburger */}
       <button
         onClick={() => setOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 bg-dark text-white p-2 rounded-xl shadow-lg"
+        className="lg:hidden fixed top-4 left-4 z-50 bg-gray-900 text-white p-2 rounded-xl shadow-lg"
         aria-label="Open sidebar"
       >
         <Menu className="w-5 h-5" />
@@ -121,7 +121,7 @@ export default function AdminSidebar({ adminName, adminInitial }: Props) {
 
       {/* Mobile drawer */}
       <aside
-        className={`lg:hidden fixed top-0 left-0 h-full w-64 bg-dark z-50
+        className={`lg:hidden fixed top-0 left-0 h-full w-64 bg-gray-900 z-50
                     transform transition-transform duration-300
                     ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
@@ -129,7 +129,7 @@ export default function AdminSidebar({ adminName, adminInitial }: Props) {
       </aside>
 
       {/* Desktop fixed sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 bg-dark fixed h-full z-40">
+      <aside className="hidden lg:flex flex-col w-64 bg-gray-900 fixed h-full z-40">
         {SidebarContent}
       </aside>
     </>

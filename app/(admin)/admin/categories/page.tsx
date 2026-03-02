@@ -238,7 +238,7 @@ export default function CategoriesPage() {
           {grouped.map(({ parent, children }) => (
             <div key={parent._id} className="card overflow-hidden">
               {/* Parent row */}
-              <div className="flex items-center justify-between px-5 py-4 bg-gray-50 border-b border-border">
+              <div className="flex items-center justify-between px-5 py-4 bg-gray-50 dark:bg-gray-800 border-b border-border">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center shrink-0">
                     <Tag className="w-4 h-4 text-primary" />
@@ -248,7 +248,7 @@ export default function CategoriesPage() {
                     <p className="text-xs text-muted font-mono">{parent.slug}</p>
                   </div>
                   {!parent.isActive && (
-                    <span className="text-xs bg-gray-200 text-muted font-semibold px-2 py-0.5 rounded-full">Inactive</span>
+                    <span className="text-xs bg-gray-200 dark:bg-gray-700 text-muted font-semibold px-2 py-0.5 rounded-full">Inactive</span>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
@@ -279,7 +279,7 @@ export default function CategoriesPage() {
                       <p className="text-xs text-muted font-mono">{child.slug}</p>
                     </div>
                     {!child.isActive && (
-                      <span className="text-xs bg-gray-200 text-muted font-semibold px-2 py-0.5 rounded-full">Inactive</span>
+                      <span className="text-xs bg-gray-200 dark:bg-gray-700 text-muted font-semibold px-2 py-0.5 rounded-full">Inactive</span>
                     )}
                   </div>
                   <div className="flex items-center gap-2">

@@ -85,7 +85,7 @@ function TrendBadge({ cur, prev }: { cur: number; prev: number }) {
       </span>
     );
   return (
-    <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+    <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">
       <Minus className="w-3 h-3" /> 0%
     </span>
   );
@@ -114,16 +114,16 @@ function StatCard({
   trend?: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+    <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
       <div className="flex items-start justify-between">
         <div className="p-2.5 bg-primary/10 rounded-xl">
           <Icon className="w-5 h-5 text-primary" />
         </div>
         {trend}
       </div>
-      <p className="mt-3 text-2xl font-bold text-gray-900">{value}</p>
-      <p className="text-sm text-gray-500 mt-0.5">{label}</p>
-      {sub && <p className="text-xs text-gray-400 mt-1">{sub}</p>}
+      <p className="mt-3 text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{label}</p>
+      {sub && <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{sub}</p>}
     </div>
   );
 }
@@ -178,10 +178,10 @@ export default function AnalyticsPage() {
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white dark:text-white flex items-center gap-2">
             <BarChart2 className="w-6 h-6 text-primary" /> Analytics
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">Revenue, orders, inventory &amp; customer insights</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Revenue, orders, inventory &amp; customer insights</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           {/* Period tabs */}
@@ -192,7 +192,7 @@ export default function AnalyticsPage() {
               className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors
                           ${period === p
                             ? "bg-primary text-white"
-                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+                            : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"}`}
             >
               {p}d
             </button>
@@ -201,7 +201,7 @@ export default function AnalyticsPage() {
           <button
             onClick={fetchAnalytics}
             disabled={loading}
-            className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors disabled:opacity-50"
+            className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors disabled:opacity-50"
             title="Refresh"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
@@ -293,8 +293,8 @@ export default function AnalyticsPage() {
 
       {/* ── Revenue + Orders Line Chart ───────────────────────────────────── */}
       {data && (
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-          <h2 className="text-base font-bold text-gray-800 mb-4">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
+          <h2 className="text-base font-bold text-gray-800 dark:text-white mb-4">
             Daily Revenue &amp; Orders — last {period} days
           </h2>
           <ResponsiveContainer width="100%" height={280}>
@@ -341,8 +341,8 @@ export default function AnalyticsPage() {
       {data && (
         <div className="grid lg:grid-cols-2 gap-6">
           {/* DOW Bar Chart */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <h2 className="text-base font-bold text-gray-800 mb-4">Orders by Day of Week</h2>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
+            <h2 className="text-base font-bold text-gray-800 dark:text-white mb-4">Orders by Day of Week</h2>
             <ResponsiveContainer width="100%" height={240}>
               <BarChart data={data.ordersByDow} margin={{ top: 5, right: 5, left: -10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -355,8 +355,8 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Category Donut */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <h2 className="text-base font-bold text-gray-800 mb-4">Revenue by Category</h2>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
+            <h2 className="text-base font-bold text-gray-800 dark:text-white mb-4">Revenue by Category</h2>
             {data.categories.length === 0 ? (
               <p className="text-sm text-gray-400 text-center py-16">No data yet</p>
             ) : (
@@ -390,8 +390,8 @@ export default function AnalyticsPage() {
 
       {/* ── Funnel Chart ──────────────────────────────────────────────────── */}
       {data && (
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-          <h2 className="text-base font-bold text-gray-800 mb-1">Conversion Funnel — last 30 days</h2>
+        <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
+          <h2 className="text-base font-bold text-gray-800 dark:text-white mb-1">Conversion Funnel — last 30 days</h2>
           <p className="text-xs text-gray-400 mb-4">Product views → add to cart → orders</p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             {data.funnel.map((step, i) => {
@@ -411,7 +411,7 @@ export default function AnalyticsPage() {
                   >
                     {step.value.toLocaleString()}
                   </div>
-                  <p className="text-xs font-semibold text-gray-700">{step.name}</p>
+                  <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">{step.name}</p>
                   {dropPct !== null && (
                     <p className="text-xs text-red-400">▼ {dropPct}% drop</p>
                   )}
@@ -424,9 +424,9 @@ export default function AnalyticsPage() {
 
       {/* ── Top Products ──────────────────────────────────────────────────── */}
       {data && (
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-gray-800">Top Products</h2>
+            <h2 className="text-base font-bold text-gray-800 dark:text-white">Top Products</h2>
             <div className="flex gap-2">
               {(["revenue", "units"] as const).map((t) => (
                 <button
@@ -435,7 +435,7 @@ export default function AnalyticsPage() {
                   className={`px-3 py-1 text-sm font-semibold rounded-full transition-colors
                               ${productTab === t
                                 ? "bg-primary text-white"
-                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+                                : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"}`}
                 >
                   {t === "revenue" ? "By Revenue" : "By Units"}
                 </button>
@@ -446,22 +446,22 @@ export default function AnalyticsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100">
-                  <th className="text-left py-2 text-gray-500 font-semibold">#</th>
-                  <th className="text-left py-2 text-gray-500 font-semibold">Product</th>
-                  <th className="text-right py-2 text-gray-500 font-semibold">Revenue</th>
-                  <th className="text-right py-2 text-gray-500 font-semibold">Units</th>
-                  <th className="text-right py-2 text-gray-500 font-semibold">Orders</th>
+                  <th className="text-left py-2 text-gray-500 dark:text-gray-400 font-semibold">#</th>
+                  <th className="text-left py-2 text-gray-500 dark:text-gray-400 font-semibold">Product</th>
+                  <th className="text-right py-2 text-gray-500 dark:text-gray-400 font-semibold">Revenue</th>
+                  <th className="text-right py-2 text-gray-500 dark:text-gray-400 font-semibold">Units</th>
+                  <th className="text-right py-2 text-gray-500 dark:text-gray-400 font-semibold">Orders</th>
                 </tr>
               </thead>
               <tbody>
                 {(productTab === "revenue" ? data.topProductsByRevenue : data.topProductsByUnits).map(
                   (p, i) => (
-                    <tr key={p.productId} className="border-b border-gray-50 hover:bg-gray-50">
+                    <tr key={p.productId} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
                       <td className="py-2.5 text-gray-400 font-semibold w-8">{i + 1}</td>
-                      <td className="py-2.5 text-gray-800 font-medium">{p.name}</td>
-                      <td className="py-2.5 text-right text-gray-700">{fmt(p.revenue)}</td>
-                      <td className="py-2.5 text-right text-gray-700">{p.units}</td>
-                      <td className="py-2.5 text-right text-gray-700">{p.orderCount}</td>
+                      <td className="py-2.5 text-gray-800 dark:text-gray-200 font-medium">{p.name}</td>
+                      <td className="py-2.5 text-right text-gray-700 dark:text-gray-300">{fmt(p.revenue)}</td>
+                      <td className="py-2.5 text-right text-gray-700 dark:text-gray-300">{p.units}</td>
+                      <td className="py-2.5 text-right text-gray-700 dark:text-gray-300">{p.orderCount}</td>
                     </tr>
                   )
                 )}
@@ -473,9 +473,9 @@ export default function AnalyticsPage() {
 
       {/* ── Inventory Alerts ──────────────────────────────────────────────── */}
       {data && (
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
+            <h2 className="text-base font-bold text-gray-800 dark:text-white flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-amber-500" /> Inventory Alerts
             </h2>
             <div className="flex gap-2 flex-wrap">
@@ -493,7 +493,7 @@ export default function AnalyticsPage() {
                     className={`px-3 py-1 text-sm font-semibold rounded-full transition-colors flex items-center gap-1
                                 ${invTab === t
                                   ? "bg-amber-500 text-white"
-                                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+                                  : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"}`}
                   >
                     {labels[t]}
                     <span className="text-xs">{counts[t]}</span>
@@ -508,10 +508,10 @@ export default function AnalyticsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100">
-                    <th className="text-left py-2 text-gray-500 font-semibold">Product</th>
-                    <th className="text-right py-2 text-gray-500 font-semibold">Stock</th>
-                    <th className="text-right py-2 text-gray-500 font-semibold">Sold (30d)</th>
-                    <th className="text-right py-2 text-gray-500 font-semibold">Days Left</th>
+                    <th className="text-left py-2 text-gray-500 dark:text-gray-400 font-semibold">Product</th>
+                    <th className="text-right py-2 text-gray-500 dark:text-gray-400 font-semibold">Stock</th>
+                    <th className="text-right py-2 text-gray-500 dark:text-gray-400 font-semibold">Sold (30d)</th>
+                    <th className="text-right py-2 text-gray-500 dark:text-gray-400 font-semibold">Days Left</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -522,8 +522,8 @@ export default function AnalyticsPage() {
                     const dailyRate = p.salesVelocity / 30;
                     const daysLeft  = dailyRate > 0 ? Math.round(p.stockQty / dailyRate) : Infinity;
                     return (
-                      <tr key={p._id} className="border-b border-gray-50 hover:bg-gray-50">
-                        <td className="py-2.5 text-gray-800 font-medium">{p.name}</td>
+                      <tr key={p._id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                        <td className="py-2.5 text-gray-800 dark:text-gray-200 font-medium">{p.name}</td>
                         <td className="py-2.5 text-right">
                           <span className={`font-semibold ${p.stockQty <= 5 ? "text-red-500" : "text-amber-500"}`}>
                             {p.stockQty}
@@ -546,8 +546,8 @@ export default function AnalyticsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100">
-                    <th className="text-left py-2 text-gray-500 font-semibold">Product</th>
-                    <th className="text-left py-2 text-gray-500 font-semibold">Slug</th>
+                    <th className="text-left py-2 text-gray-500 dark:text-gray-400 font-semibold">Product</th>
+                    <th className="text-left py-2 text-gray-500 dark:text-gray-400 font-semibold">Slug</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -555,8 +555,8 @@ export default function AnalyticsPage() {
                     <tr><td colSpan={2} className="py-6 text-center text-gray-400">No out-of-stock items ✓</td></tr>
                   )}
                   {data.inventory.outOfStock.map((p) => (
-                    <tr key={p._id} className="border-b border-gray-50 hover:bg-gray-50">
-                      <td className="py-2.5 text-gray-800 font-medium">{p.name}</td>
+                    <tr key={p._id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                      <td className="py-2.5 text-gray-800 dark:text-gray-200 font-medium">{p.name}</td>
                       <td className="py-2.5 text-gray-400 font-mono text-xs">{p.slug}</td>
                     </tr>
                   ))}
@@ -570,9 +570,9 @@ export default function AnalyticsPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100">
-                    <th className="text-left py-2 text-gray-500 font-semibold">Product</th>
-                    <th className="text-right py-2 text-gray-500 font-semibold">Stock</th>
-                    <th className="text-left py-2 text-gray-500 font-semibold">Note</th>
+                    <th className="text-left py-2 text-gray-500 dark:text-gray-400 font-semibold">Product</th>
+                    <th className="text-right py-2 text-gray-500 dark:text-gray-400 font-semibold">Stock</th>
+                    <th className="text-left py-2 text-gray-500 dark:text-gray-400 font-semibold">Note</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -580,8 +580,8 @@ export default function AnalyticsPage() {
                     <tr><td colSpan={3} className="py-6 text-center text-gray-400">No slow-moving products ✓</td></tr>
                   )}
                   {data.inventory.slowMoving.map((p) => (
-                    <tr key={p._id} className="border-b border-gray-50 hover:bg-gray-50">
-                      <td className="py-2.5 text-gray-800 font-medium">{p.name}</td>
+                    <tr key={p._id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                      <td className="py-2.5 text-gray-800 dark:text-gray-200 font-medium">{p.name}</td>
                       <td className="py-2.5 text-right text-gray-600">{p.stockQty}</td>
                       <td className="py-2.5 text-xs text-gray-400">No orders in 14 days</td>
                     </tr>
@@ -597,8 +597,8 @@ export default function AnalyticsPage() {
       {data && (
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Customer KPIs */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
-            <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800 space-y-4">
+            <h2 className="text-base font-bold text-gray-800 dark:text-white flex items-center gap-2">
               <Users className="w-5 h-5 text-primary" /> Customer Insights
             </h2>
             {[
@@ -615,16 +615,16 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Top Customers table */}
-          <div className="lg:col-span-2 bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <h2 className="text-base font-bold text-gray-800 mb-4">Top 10 Customers by LTV</h2>
+          <div className="lg:col-span-2 bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
+            <h2 className="text-base font-bold text-gray-800 dark:text-white mb-4">Top 10 Customers by LTV</h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100">
-                    <th className="text-left py-2 text-gray-500 font-semibold">Name</th>
-                    <th className="text-left py-2 text-gray-500 font-semibold hidden sm:table-cell">Email</th>
-                    <th className="text-right py-2 text-gray-500 font-semibold">Spent</th>
-                    <th className="text-right py-2 text-gray-500 font-semibold">Orders</th>
+                    <th className="text-left py-2 text-gray-500 dark:text-gray-400 font-semibold">Name</th>
+                    <th className="text-left py-2 text-gray-500 dark:text-gray-400 font-semibold hidden sm:table-cell">Email</th>
+                    <th className="text-right py-2 text-gray-500 dark:text-gray-400 font-semibold">Spent</th>
+                    <th className="text-right py-2 text-gray-500 dark:text-gray-400 font-semibold">Orders</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -632,8 +632,8 @@ export default function AnalyticsPage() {
                     <tr><td colSpan={4} className="py-6 text-center text-gray-400">No customer data yet</td></tr>
                   )}
                   {data.customers.topCustomers.map((c, i) => (
-                    <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
-                      <td className="py-2.5 text-gray-800 font-medium">{c.name}</td>
+                    <tr key={i} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                      <td className="py-2.5 text-gray-800 dark:text-gray-200 font-medium">{c.name}</td>
                       <td className="py-2.5 text-gray-400 text-xs hidden sm:table-cell">{c.email}</td>
                       <td className="py-2.5 text-right font-semibold text-gray-700">{fmt(c.totalSpend)}</td>
                       <td className="py-2.5 text-right text-gray-600">{c.orderCount}</td>
@@ -648,8 +648,8 @@ export default function AnalyticsPage() {
 
       {/* ── Pincode Table ─────────────────────────────────────────────────── */}
       {data && (
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-          <h2 className="text-base font-bold text-gray-800 mb-4">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
+          <h2 className="text-base font-bold text-gray-800 dark:text-white mb-4">
             <span className="flex items-center gap-2">
               <Package className="w-5 h-5 text-primary" /> Top Delivery Pincodes
             </span>
@@ -658,11 +658,11 @@ export default function AnalyticsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100">
-                  <th className="text-left py-2 text-gray-500 font-semibold">#</th>
-                  <th className="text-left py-2 text-gray-500 font-semibold">Pincode</th>
-                  <th className="text-right py-2 text-gray-500 font-semibold">Orders</th>
-                  <th className="text-right py-2 text-gray-500 font-semibold">Revenue</th>
-                  <th className="text-right py-2 text-gray-500 font-semibold">Share</th>
+                  <th className="text-left py-2 text-gray-500 dark:text-gray-400 font-semibold">#</th>
+                  <th className="text-left py-2 text-gray-500 dark:text-gray-400 font-semibold">Pincode</th>
+                  <th className="text-right py-2 text-gray-500 dark:text-gray-400 font-semibold">Orders</th>
+                  <th className="text-right py-2 text-gray-500 dark:text-gray-400 font-semibold">Revenue</th>
+                  <th className="text-right py-2 text-gray-500 dark:text-gray-400 font-semibold">Share</th>
                 </tr>
               </thead>
               <tbody>
@@ -673,14 +673,14 @@ export default function AnalyticsPage() {
                   const totalOrders = data.pincodes.reduce((s, x) => s + x.orders, 0);
                   const share = totalOrders > 0 ? Math.round((p.orders / totalOrders) * 100) : 0;
                   return (
-                    <tr key={p.pincode} className="border-b border-gray-50 hover:bg-gray-50">
+                    <tr key={p.pincode} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
                       <td className="py-2.5 text-gray-400 font-semibold w-8">{i + 1}</td>
                       <td className="py-2.5 text-gray-800 font-mono font-semibold">{p.pincode || "—"}</td>
-                      <td className="py-2.5 text-right text-gray-700">{p.orders}</td>
-                      <td className="py-2.5 text-right text-gray-700">{fmt(p.revenue)}</td>
+                      <td className="py-2.5 text-right text-gray-700 dark:text-gray-300">{p.orders}</td>
+                      <td className="py-2.5 text-right text-gray-700 dark:text-gray-300">{fmt(p.revenue)}</td>
                       <td className="py-2.5 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <div className="w-16 bg-gray-100 rounded-full h-1.5 hidden sm:block">
+                          <div className="w-16 bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 hidden sm:block">
                             <div
                               className="bg-primary h-1.5 rounded-full"
                               style={{ width: `${share}%` }}
@@ -700,7 +700,7 @@ export default function AnalyticsPage() {
 
       {/* Loading overlay */}
       {loading && !data && (
-        <div className="fixed inset-0 bg-white/70 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-white/70 dark:bg-gray-950/80 flex items-center justify-center z-50">
           <div className="flex flex-col items-center gap-3">
             <RefreshCw className="w-8 h-8 text-primary animate-spin" />
             <p className="text-sm text-gray-600">Loading analytics…</p>
