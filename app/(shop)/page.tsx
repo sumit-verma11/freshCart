@@ -6,6 +6,7 @@ import {
 import { connectDB } from "@/lib/mongoose";
 import Category from "@/models/Category";
 import AnimatedHeroText from "./_components/AnimatedHeroText";
+import { ClaimOfferButton, ClaimOfferLink } from "./_components/ClaimOfferButton";
 import ShopSection, { CategoryItem } from "@/components/ShopSection";
 import HomepageRecentlyViewed from "@/components/HomepageRecentlyViewed";
 import JustForYou from "@/components/JustForYou";
@@ -177,9 +178,7 @@ export default async function HomePage() {
               FRESH100
             </code>
             {" "}· Min order ₹299{" "}
-            <Link href="/register" className="underline text-primary ml-2 font-semibold hover:text-primary-600">
-              Claim →
-            </Link>
+            <ClaimOfferLink />
           </p>
         </div>
       </section>
@@ -262,14 +261,7 @@ export default async function HomePage() {
                 at checkout. Min. order ₹299. Valid for new users only.
               </p>
             </div>
-            <Link
-              href="/register"
-              className="inline-flex items-center gap-2 bg-secondary text-white font-bold
-                         text-lg px-8 py-4 rounded-2xl hover:bg-secondary-500 active:scale-95
-                         transition-all duration-200 shadow-lg shrink-0"
-            >
-              Claim Offer <ArrowRight className="w-5 h-5" />
-            </Link>
+            <ClaimOfferButton />
           </div>
         </div>
       </section>

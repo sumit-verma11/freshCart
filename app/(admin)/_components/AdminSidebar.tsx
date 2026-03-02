@@ -6,11 +6,12 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import {
   LayoutDashboard, Package, Tag, ShoppingBag, MapPin,
-  Leaf, LogOut, Menu, X, ChevronRight, Bell,
+  Leaf, LogOut, Menu, X, ChevronRight, Bell, BarChart2,
 } from "lucide-react";
 
 const NAV = [
   { href: "/admin/dashboard",   label: "Dashboard",   icon: LayoutDashboard },
+  { href: "/admin/analytics",   label: "Analytics",   icon: BarChart2        },
   { href: "/admin/products",    label: "Products",     icon: Package          },
   { href: "/admin/categories",  label: "Categories",   icon: Tag              },
   { href: "/admin/orders",      label: "Orders",       icon: ShoppingBag      },

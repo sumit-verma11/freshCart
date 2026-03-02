@@ -13,6 +13,15 @@ if (!g._fcSSE) {
 
 export const sseEmitter = g._fcSSE;
 
+// ─── Active SSE connection counter ───────────────────────────────────────────
+// Incremented/decremented by each SSE route handler on connect/disconnect.
+const gc = globalThis as typeof globalThis & { _fcSSECount?: number };
+if (gc._fcSSECount === undefined) gc._fcSSECount = 0;
+
+export function sseConnect()    { gc._fcSSECount! += 1; }
+export function sseDisconnect() { gc._fcSSECount! = Math.max(0, gc._fcSSECount! - 1); }
+export function getSSECount()   { return gc._fcSSECount ?? 0; }
+
 /**
  * Publish an event to all SSE clients subscribed to `channel`.
  */

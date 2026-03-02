@@ -806,7 +806,7 @@ const PRODUCTS_DEF: ProductDef[] = [
     ingredients: "Noodles (Wheat Flour, Palm Oil, Salt), Seasoning Pack (Soy Sauce, Chilli, Garlic)",
     allergyInfo: "Contains wheat, soy. May contain eggs and shellfish.",
     catSlug: "snacks-branded", subSlug: "instant-noodles",
-    images: ["https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=600"],
+    images: ["https://images.unsplash.com/photo-1557872943-16a5ac26437e?w=600"],
     variants: [
       { size: "75",  unit: "g",  mrp: 80,   sellingPrice: 69 },
     ],
@@ -822,7 +822,7 @@ const PRODUCTS_DEF: ProductDef[] = [
     ingredients: "100% Dry Roasted Peanuts",
     allergyInfo: "Contains peanuts. Processed in a facility handling tree nuts.",
     catSlug: "snacks-branded", subSlug: "ready-to-eat",
-    images: ["https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600"],
+    images: ["https://images.unsplash.com/photo-1540189549336-e6e99eb4b895?w=600"],
     variants: [
       { size: "200", unit: "g",  mrp: 179,  sellingPrice: 155 },
       { size: "400", unit: "g",  mrp: 329,  sellingPrice: 285 },
@@ -939,7 +939,7 @@ const PRODUCTS_DEF: ProductDef[] = [
     description: "Premium Atlantic salmon fillet, sustainably sourced. Rich in Omega-3. Pan-fry, bake, or grill.",
     additionalInfo: "Sourced from MSC-certified sustainable fisheries. Fresh, not frozen.",
     catSlug: "meat-seafood", subSlug: "fish",
-    images: ["https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=600"],
+    images: ["https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=600"],
     variants: [
       { size: "200", unit: "g",  mrp: 850,  sellingPrice: 749 },
       { size: "400", unit: "g",  mrp: 1650, sellingPrice: 1449 },
@@ -967,7 +967,7 @@ const PRODUCTS_DEF: ProductDef[] = [
     name: "Omega-3 Enriched Eggs",
     description: "Specially enriched eggs from hens fed on an Omega-3-rich flaxseed diet. Better nutrition for your family.",
     catSlug: "meat-seafood", subSlug: "poultry-eggs",
-    images: ["https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=600"],
+    images: ["https://images.unsplash.com/photo-1498654077703-1c3e72427c50?w=600"],
     variants: [
       { size: "6",   unit: "pc", mrp: 75,   sellingPrice: 65 },
       { size: "12",  unit: "pc", mrp: 145,  sellingPrice: 125 },

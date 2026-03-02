@@ -122,7 +122,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   }
 
   return (
-    <Link href={`/product/${product.slug}`} className="block group">
+    <Link href={`/products/${product.slug}`} className="block group">
       <div className="card-hover overflow-hidden h-full flex flex-col">
         {/* Image */}
         <div className="relative aspect-square bg-accent overflow-hidden">

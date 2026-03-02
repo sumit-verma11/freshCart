@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  Plus, Search, Edit2, Trash2, Loader2, RefreshCw, Package,
+  Plus, Search, Edit2, Trash2, Loader2, RefreshCw, Package, ImageIcon, X, CheckCircle2,
 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import toast from "react-hot-toast";
@@ -18,6 +18,14 @@ interface Product {
   isAvailable: boolean; isOrganic: boolean; isFeatured: boolean;
 }
 
+interface FixProgress {
+  total: number;
+  done: number;
+  current: string;
+  errors: string[];
+  finished: boolean;
+}
+
 export default function AdminProductsPage() {
   const [products,    setProducts]    = useState<Product[]>([]);
   const [categories,  setCategories]  = useState<Category[]>([]);
@@ -28,6 +36,8 @@ export default function AdminProductsPage() {
   const [deleting,    setDeleting]    = useState<string | null>(null);
   const [page,        setPage]        = useState(1);
   const [totalPages,  setTotalPages]  = useState(1);
+  const [fixProgress, setFixProgress] = useState<FixProgress | null>(null);
+  const fixAbort                      = useRef(false);
 
   // Fetch categories once for filter dropdown
   useEffect(() => {
@@ -103,17 +113,146 @@ export default function AdminProductsPage() {
     }
   }
 
+  async function fixAllImages() {
+    // 1. Fetch the list of slugs with keyword mappings
+    const metaRes = await fetch("/api/admin/fix-images");
+    const meta    = await metaRes.json();
+    if (!meta.success) { toast.error("Failed to load slug list"); return; }
+
+    const slugs: string[] = meta.slugs;
+    fixAbort.current = false;
+
+    setFixProgress({ total: slugs.length, done: 0, current: "", errors: [], finished: false });
+
+    let errors: string[] = [];
+
+    for (let i = 0; i < slugs.length; i++) {
+      if (fixAbort.current) break;
+
+      const slug = slugs[i];
+      setFixProgress((p) => p ? { ...p, done: i, current: slug } : p);
+
+      try {
+        const res  = await fetch("/api/admin/fix-images", {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body:    JSON.stringify({ slug }),
+        });
+        const data = await res.json();
+        if (!data.success) errors = [...errors, `${slug}: ${data.error}`];
+      } catch {
+        errors = [...errors, `${slug}: network error`];
+      }
+
+      // Small client-side delay to avoid hammering Unsplash (API does 1 call per route invocation)
+      await new Promise((r) => setTimeout(r, 200));
+    }
+
+    setFixProgress((p) =>
+      p ? { ...p, done: slugs.length, current: "", errors, finished: true } : p
+    );
+
+    if (errors.length === 0) {
+      toast.success(`All ${slugs.length} product images updated!`);
+    } else {
+      toast(`${slugs.length - errors.length} updated, ${errors.length} failed`);
+    }
+
+    // Reload products list to show new images
+    fetchProducts();
+  }
+
   return (
     <div className="space-y-6">
+      {/* Fix-images progress modal */}
+      {fixProgress && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-modal w-full max-w-md p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="font-bold text-dark text-lg flex items-center gap-2">
+                <ImageIcon className="w-5 h-5 text-primary" /> Fix All Images
+              </h2>
+              {fixProgress.finished && (
+                <button
+                  onClick={() => setFixProgress(null)}
+                  className="text-muted hover:text-dark transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
+            </div>
+
+            {/* Progress bar */}
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs text-muted">
+                <span>{fixProgress.done} / {fixProgress.total} products</span>
+                <span>{Math.round((fixProgress.done / fixProgress.total) * 100)}%</span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all duration-300"
+                  style={{ width: `${(fixProgress.done / fixProgress.total) * 100}%` }}
+                />
+              </div>
+              {fixProgress.current && !fixProgress.finished && (
+                <p className="text-xs text-muted truncate">Updating: {fixProgress.current}</p>
+              )}
+            </div>
+
+            {fixProgress.finished ? (
+              <div className="flex items-center gap-2 text-success text-sm font-semibold">
+                <CheckCircle2 className="w-5 h-5" />
+                Done! {fixProgress.total - fixProgress.errors.length} images updated.
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-muted text-sm">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Fetching from Unsplash… this takes ~{Math.ceil((fixProgress.total * 1.3) / 60)} min
+              </div>
+            )}
+
+            {fixProgress.errors.length > 0 && (
+              <details className="text-xs text-danger">
+                <summary className="cursor-pointer font-semibold">
+                  {fixProgress.errors.length} failed
+                </summary>
+                <ul className="mt-1 space-y-0.5 list-disc list-inside opacity-80">
+                  {fixProgress.errors.map((e, i) => <li key={i}>{e}</li>)}
+                </ul>
+              </details>
+            )}
+
+            {!fixProgress.finished && (
+              <button
+                onClick={() => { fixAbort.current = true; }}
+                className="btn-outline text-sm py-1.5 w-full"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-dark">Products</h1>
           <p className="text-muted text-sm mt-0.5">Manage your product catalogue</p>
         </div>
-        <Link href="/admin/products/new" className="btn-primary flex items-center gap-2">
-          <Plus className="w-4 h-4" /> Add Product
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={fixAllImages}
+            disabled={!!fixProgress && !fixProgress.finished}
+            className="btn-outline flex items-center gap-2 text-sm py-2 disabled:opacity-50"
+            title="Auto-assign relevant images to all products using Unsplash"
+          >
+            <ImageIcon className="w-4 h-4" /> Fix All Images
+          </button>
+          <Link href="/admin/products/new" className="btn-primary flex items-center gap-2">
+            <Plus className="w-4 h-4" /> Add Product
+          </Link>
+        </div>
       </div>
 
       {/* Filters */}
