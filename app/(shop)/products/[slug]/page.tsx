@@ -1,5 +1,4 @@
 export const dynamic = "force-dynamic";
-export const revalidate = 300;
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronRight, Leaf, Star } from "lucide-react";
@@ -8,7 +7,7 @@ import type { Metadata } from "next";
 import { connectDB } from "@/lib/mongoose";
 import Product from "@/models/Product";
 import { calculateDiscount } from "@/lib/utils";
-import { ICategory, IProduct, INutritionFacts } from "@/types";
+import { IProduct, INutritionFacts } from "@/types";
 
 import ImageGallery    from "../_components/ImageGallery";
 import ProductActions, { SerializedProduct } from "../_components/ProductActions";
